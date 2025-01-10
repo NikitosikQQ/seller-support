@@ -10,7 +10,7 @@ import java.util.UUID;
 @Table(name = "users")
 @Getter
 @Setter
-public class User {
+public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -18,7 +18,7 @@ public class User {
     private UUID id;
 
     @Column(nullable = false, unique = true)
-    private String login;
+    private String username;
 
     @Column(nullable = false)
     private String password;
