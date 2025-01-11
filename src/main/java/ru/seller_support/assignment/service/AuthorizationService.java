@@ -6,7 +6,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import ru.seller_support.assignment.config.security.JwtService;
-import ru.seller_support.assignment.controller.dto.SignInRequest;
+import ru.seller_support.assignment.controller.dto.request.SignInRequest;
 import ru.seller_support.assignment.util.SecurityUtils;
 
 @Service
@@ -20,6 +20,6 @@ public class AuthorizationService {
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
         SecurityUtils.setAuthentication(auth);
-        return jwtService.generateToken(auth);
+        return jwtService.generateToken();
     }
 }

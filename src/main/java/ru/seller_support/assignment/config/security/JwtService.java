@@ -1,46 +1,65 @@
 package ru.seller_support.assignment.config.security;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import ru.seller_support.assignment.util.SecurityUtils;
 
+import java.time.Duration;
 import java.util.Date;
+import java.util.List;
 
 @Component
 public class JwtService {
 
-    private static final String AUTHORITIES_KEY = "authorities";
+    private static final String ROLES_KEY = "roles";
 
     @Value("${app.security.secret}")
     private String secret;
 
     @Value("${app.security.lifetime}")
-    private int lifetimeMs;
+    private Duration lifetime;
 
-    public String generateToken(Authentication auth) {
-        UserDetails userDetails = SecurityUtils.getUserDetails();
+    public String generateToken() {
+        UserDetails user = SecurityUtils.getUserDetails();
+
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + lifetimeMs);
+        Date expiryDate = new Date(now.getTime() + lifetime.toMillis());
+
+        List<String> roles = user.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
 
         return Jwts.builder()
-                .subject(userDetails.getUsername())
+                .subject(user.getUsername())
                 .issuedAt(new Date())
                 .expiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS256, secret)
-                .claim(AUTHORITIES_KEY, userDetails.getAuthorities())
+                .claim(ROLES_KEY, roles)
                 .compact();
     }
 
     public String getUsernameFromToken(String jwt) {
+        return getClaimsFromToken(jwt).getSubject();
+    }
+
+    public List<String> getRolesFromToken(String jwt) {
+        Object rawRoles = getClaimsFromToken(jwt).get(ROLES_KEY);
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.convertValue(rawRoles, new TypeReference<>() {});
+    }
+
+    public Claims getClaimsFromToken(String jwt) {
         return Jwts.parser()
                 .setSigningKey(secret)
                 .build()
                 .parseClaimsJws(jwt)
-                .getBody()
-                .getSubject();
+                .getBody();
     }
 }
