@@ -12,6 +12,7 @@ import ru.seller_support.assignment.adapter.postgres.repository.RoleRepository;
 import ru.seller_support.assignment.adapter.postgres.repository.UserRepository;
 import ru.seller_support.assignment.controller.dto.request.AddRolesRequest;
 import ru.seller_support.assignment.controller.dto.request.CreateUserRequest;
+import ru.seller_support.assignment.controller.dto.request.DeleteRoleRequest;
 import ru.seller_support.assignment.exception.RoleChangeException;
 
 import java.util.Arrays;
@@ -40,15 +41,10 @@ public class UserService {
 
     @Transactional
     public void addRolesToUser(AddRolesRequest request) {
-        try {
-            UserEntity user = findUserByUsername(request.getUsername());
-            Set<RoleEntity> roles = findRolesByNames(request.getRoles());
-            user.getRoles().addAll(roles);
-            userRepository.save(user);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-
+        UserEntity user = findUserByUsername(request.getUsername());
+        Set<RoleEntity> roles = findRolesByNames(request.getRoles());
+        user.getRoles().addAll(roles);
+        userRepository.save(user);
     }
 
     public List<String> getAllRoleNames() {
@@ -72,5 +68,19 @@ public class UserService {
                     Arrays.toString(roles.toArray())));
         }
         return Set.copyOf(roles);
+    }
+
+    @Transactional
+    public void deleteRoleFromUser(DeleteRoleRequest request) {
+        UserEntity user = findUserByUsername(request.getUsername());
+        RoleEntity roleToDelete = findRolesByNames(List.of(request.getRole())).stream().toList().getFirst();
+        Set<RoleEntity> userRoles = user.getRoles();
+        boolean userNotHasThatRole = !userRoles.contains(roleToDelete);
+        if (userNotHasThatRole) {
+            throw new RoleChangeException(String.format("Роль %s отсутствует у пользователя %s",
+                    request.getRole(), request.getUsername()));
+        }
+        userRoles.remove(roleToDelete);
+        userRepository.save(user);
     }
 }

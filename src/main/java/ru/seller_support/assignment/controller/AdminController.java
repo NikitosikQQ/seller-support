@@ -2,6 +2,7 @@ package ru.seller_support.assignment.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import ru.seller_support.assignment.controller.dto.request.DeleteRoleRequest;
 import ru.seller_support.assignment.controller.dto.request.CreateUserRequest;
 import ru.seller_support.assignment.controller.dto.request.AddRolesRequest;
 import ru.seller_support.assignment.service.UserService;
@@ -23,6 +24,11 @@ public class AdminController {
     @PatchMapping(path = "/users/roles")
     public void addRolesToUser(@RequestBody AddRolesRequest request) {
         userService.addRolesToUser(request);
+    }
+
+    @DeleteMapping(path = "/users/roles")
+    public void deleteRoleFromUser(@RequestBody DeleteRoleRequest request) {
+        userService.deleteRoleFromUser(request);
     }
 
 
