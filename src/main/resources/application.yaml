@@ -13,4 +13,4 @@ spring:
 app:
   security:
     secret: 620b2a375d2fddb70e26371777add3645c459d054fd68016ef761ce8931bceee
-    lifetime: PT60M
+    lifetime: PT120M

@@ -1,0 +1,154 @@
+/* Фон для модального окна */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный черный фон */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Поверх других элементов */
+}
+
+/* Контент модального окна */
+.modal-content {
+    background: #ffffff; /* Белый фон */
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    animation: fadeIn 0.3s ease-out; /* Анимация появления */
+}
+
+/* Кнопка закрытия */
+.close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    border: none;
+    background: none;
+    transition: color 0.3s ease;
+}
+
+.close-button:hover {
+    color: #000;
+}
+
+/* Анимация появления модального окна */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Заголовок модального окна */
+.modal-content h3 {
+    font-size: 1.5rem;
+    color: #333;
+    text-align: center;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    margin-top: 0
+}
+
+/* Поля ввода */
+.modal-content input,
+.modal-content select {
+    padding: 0.85rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #fafafa;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.modal-content input:focus,
+.modal-content select:focus {
+    border-color: #2f2f2f; /* Акцент */
+    background-color: #ffffff;
+    outline: none;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Кнопки модального окна */
+.modal-content .button-group {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.modal-content .button {
+    flex: 1;
+    padding: 0.85rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease, box-shadow 0.2s ease;
+    margin-top: 1rem;
+}
+
+.modal-content .button-save {
+    background: #3b3b3b;
+    color: #ffffff;
+}
+
+.modal-content .button-save:hover {
+    background: #030303;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.79);
+}
+
+.modal-content .button-save:active {
+    background: #2c2c2c;
+}
+
+.modal-content .button-cancel {
+    background: #f44336;
+    color: #ffffff;
+}
+
+.modal-content .button-cancel:hover {
+    background: #d32f2f;
+    box-shadow: 0 4px 10px rgba(211, 47, 47, 0.6);
+}
+
+.modal-content .button-cancel:active {
+    background: #b71c1c;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Адаптивность */
+@media (max-width: 600px) {
+    .modal-content {
+        padding: 1.5rem;
+    }
+
+    .modal-content h3 {
+        font-size: 1.3rem;
+    }
+
+    .modal-content .button {
+        font-size: 0.9rem;
+        padding: 0.7rem;
+    }
+}

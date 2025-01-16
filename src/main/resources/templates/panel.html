@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Автоматизация отчетности</title>
+    <link rel="stylesheet" href="/styles/panel.css">
+    <link rel="stylesheet" href="/styles/modal-window.css">
+    <script src="/scripts/panel.js" type="module" defer></script>
+    <script src="/scripts/users-panel.js" type="module" defer></script>
+</head>
+<body>
+<div id="admin-container">
+    <div id="sidebar">
+        <h2>Меню</h2>
+        <ul>
+            <li><a href="#" id="users-section", style="display:none;">Пользователи</a></li>
+            <li><a href="#" id="reports-section">Отчеты</a></li>
+        </ul>
+        <button id="logout-btn">Выйти</button>
+    </div>
+
+    <div id="main-content">
+        <h1>Панель управления</h1>
+        <div id="admin-content">
+            <div id="main-container">
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

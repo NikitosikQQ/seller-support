@@ -1,4 +1,4 @@
-package ru.seller_support.assignment.controller.exception.dto;
+package ru.seller_support.assignment.controller.error.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

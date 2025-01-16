@@ -1,11 +1,11 @@
-package ru.seller_support.assignment.controller.exception;
+package ru.seller_support.assignment.controller.error;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-import ru.seller_support.assignment.controller.exception.dto.ErrorResponse;
+import ru.seller_support.assignment.controller.error.dto.ErrorResponse;
 
 @Component
 public class ErrorResolver {

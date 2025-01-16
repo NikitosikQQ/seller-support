@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Авторизация</title>
+    <link rel="stylesheet" href="/styles/login.css">
+</head>
+<body>
+<div id="auth-container">
+    <form id="login-form">
+        <h2>Авторизация</h2>
+        <label for="username">Логин:</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <label for="password">Пароль:</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <button type="submit">Войти</button>
+    </form>
+    <div id="error-message"></div>
+</div>
+<script src="/scripts/login.js" defer></script>
+</body>
+</html>
