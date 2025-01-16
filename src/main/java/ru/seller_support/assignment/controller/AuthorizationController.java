@@ -15,7 +15,7 @@ public class AuthorizationController {
 
     private final AuthorizationService authorizationService;
 
-    @PostMapping(path = "/login",
+    @PostMapping(path = "/auth",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public JwtTokenResponse login(@RequestBody SignInRequest request) {

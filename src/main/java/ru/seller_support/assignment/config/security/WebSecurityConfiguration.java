@@ -37,15 +37,18 @@ public class WebSecurityConfiguration {
                 .anonymous(AbstractHttpConfigurer::disable)
                 .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/styles/**", "/scripts/**", "/login.html").permitAll()
-                        .requestMatchers("/login").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/styles/**", "/scripts/**", "/auth").permitAll()
+                        .requestMatchers("/admin/**").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(form -> form
-                        .loginPage("/login.html")
+                        .loginPage("/login")
                         .permitAll()
                 )
-                .addFilterBefore(jwtSecurityFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtSecurityFilter, UsernamePasswordAuthenticationFilter.class)
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login"));
+
         return http.build();
     }
 

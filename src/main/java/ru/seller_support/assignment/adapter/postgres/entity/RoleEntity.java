@@ -3,6 +3,7 @@ package ru.seller_support.assignment.adapter.postgres.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.UUID;
 
@@ -10,6 +11,7 @@ import java.util.UUID;
 @Table(name = "roles")
 @Getter
 @Setter
+@ToString
 public class RoleEntity {
 
     @Id

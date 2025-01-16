@@ -39,6 +39,10 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public List<UserEntity> findAllUsers() {
+        return userRepository.findAll();
+    }
+
     @Transactional
     public void addRolesToUser(AddRolesRequest request) {
         UserEntity user = findUserByUsername(request.getUsername());
