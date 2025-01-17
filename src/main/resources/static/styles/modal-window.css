@@ -65,8 +65,7 @@
 }
 
 /* Поля ввода */
-.modal-content input,
-.modal-content select {
+.modal-content .input-not-role {
     padding: 0.85rem 1rem;
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -78,8 +77,7 @@
     margin-bottom: 1rem;
 }
 
-.modal-content input:focus,
-.modal-content select:focus {
+.modal-content .input-not-role:focus {
     border-color: #2f2f2f; /* Акцент */
     background-color: #ffffff;
     outline: none;
@@ -151,4 +149,108 @@
         font-size: 0.9rem;
         padding: 0.7rem;
     }
+}
+
+modal-content .checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+/* Стиль для каждого чекбокса */
+.modal-content .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    color: #333;
+    transition: color 0.3s ease;
+}
+
+/* Чекбокс */
+.modal-content .checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    appearance: none;
+    background-color: #fafafa;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Чекбокс: состояние "выбран" */
+.modal-content .checkbox-label input[type="checkbox"]:checked {
+    background-color: #3b3b3b;
+    border-color: #3b3b3b;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.2l-4.2-4.2 1.4-1.4L9 13.4l8.8-8.8 1.4 1.4z'/%3E%3C/svg%3E");
+    background-size: 70%;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Ховер на чекбокс */
+.modal-content .checkbox-label input[type="checkbox"]:hover {
+    border-color: #3b3b3b;
+}
+
+/* Фокус на чекбокс */
+.modal-content .checkbox-label input[type="checkbox"]:focus {
+    outline: 2px solid #3b3b3b;
+    outline-offset: 2px;
+}
+
+/* Текст для чекбокса */
+.modal-content .checkbox-label span {
+    font-size: 1rem;
+    color: #333;
+    transition: color 0.3s ease;
+}
+
+.modal-content .checkbox-label:hover span {
+    color: #000;
+}
+
+/* Адаптивность */
+@media (max-width: 600px) {
+    .modal-content .checkbox-group {
+        gap: 0.5rem;
+    }
+
+    .modal-content .checkbox-label span {
+        font-size: 0.9rem;
+    }
+
+    .modal-content .checkbox-label input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+/* Стиль для отображения ролей */
+.modal-content .role-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.modal-content .role-item:hover {
+    background-color: #f1f1f1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content .role-item span {
+    flex-grow: 1;
+    font-size: 1rem;
+    color: #333;
 }

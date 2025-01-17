@@ -10,15 +10,15 @@ import ru.seller_support.assignment.adapter.postgres.entity.RoleEntity;
 import ru.seller_support.assignment.adapter.postgres.entity.UserEntity;
 import ru.seller_support.assignment.adapter.postgres.repository.RoleRepository;
 import ru.seller_support.assignment.adapter.postgres.repository.UserRepository;
-import ru.seller_support.assignment.controller.dto.request.AddRolesRequest;
 import ru.seller_support.assignment.controller.dto.request.CreateUserRequest;
-import ru.seller_support.assignment.controller.dto.request.DeleteRoleRequest;
 import ru.seller_support.assignment.controller.dto.request.DeleteUserRequest;
-import ru.seller_support.assignment.exception.UserChangeException;
+import ru.seller_support.assignment.controller.dto.request.UserChangeRequest;
 import ru.seller_support.assignment.exception.RoleChangeException;
+import ru.seller_support.assignment.exception.UserChangeException;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -33,9 +33,7 @@ public class UserService {
 
     @Transactional
     public void saveUser(CreateUserRequest request) {
-        if (usernameIsNotUnique(request.getUsername())) {
-            throw new UserChangeException("Username = " + request.getUsername() + " уже используется");
-        }
+        checkUsernameIsNotUnique(request.getUsername());
         UserEntity user = new UserEntity();
         Set<RoleEntity> roles = findRolesByNames(request.getRoles());
         user.setUsername(request.getUsername());
@@ -48,11 +46,17 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    @Transactional
-    public void addRolesToUser(AddRolesRequest request) {
+    public void updateUser(UserChangeRequest request) {
+        checkUsernameIsNotUnique(request.getUpdatedUsername());
         UserEntity user = findUserByUsername(request.getUsername());
-        Set<RoleEntity> roles = findRolesByNames(request.getRoles());
-        user.getRoles().addAll(roles);
+        Set<RoleEntity> roles = findRolesByNames(request.getUpdatedRoles());
+        if (Objects.nonNull(request.getUpdatedRoles()) && !request.getUpdatedRoles().isEmpty()) {
+            user.getRoles().clear();
+            user.getRoles().addAll(roles);
+        }
+        if (Objects.nonNull(request.getUpdatedUsername())) {
+            user.setUsername(request.getUpdatedUsername());
+        }
         userRepository.save(user);
     }
 
@@ -85,21 +89,9 @@ public class UserService {
         userRepository.deleteById(user.getId());
     }
 
-    @Transactional
-    public void deleteRoleFromUser(DeleteRoleRequest request) {
-        UserEntity user = findUserByUsername(request.getUsername());
-        RoleEntity roleToDelete = findRolesByNames(List.of(request.getRole())).stream().toList().getFirst();
-        Set<RoleEntity> userRoles = user.getRoles();
-        boolean userNotHasThatRole = !userRoles.contains(roleToDelete);
-        if (userNotHasThatRole) {
-            throw new RoleChangeException(String.format("Роль %s отсутствует у пользователя %s",
-                    request.getRole(), request.getUsername()));
+    private void checkUsernameIsNotUnique(String username) {
+        if (userRepository.findByUsername(username).isPresent()) {
+            throw new UserChangeException("Username = " + username + " уже используется");
         }
-        userRoles.remove(roleToDelete);
-        userRepository.save(user);
-    }
-
-    private boolean usernameIsNotUnique(String username) {
-        return userRepository.findByUsername(username).isPresent();
     }
 }

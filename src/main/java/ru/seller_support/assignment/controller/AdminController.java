@@ -1,14 +1,14 @@
 package ru.seller_support.assignment.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.seller_support.assignment.adapter.postgres.entity.RoleEntity;
 import ru.seller_support.assignment.adapter.postgres.entity.UserEntity;
-import ru.seller_support.assignment.controller.dto.request.AddRolesRequest;
 import ru.seller_support.assignment.controller.dto.request.CreateUserRequest;
-import ru.seller_support.assignment.controller.dto.request.DeleteRoleRequest;
 import ru.seller_support.assignment.controller.dto.request.DeleteUserRequest;
+import ru.seller_support.assignment.controller.dto.request.UserChangeRequest;
 import ru.seller_support.assignment.controller.dto.response.UserResponse;
 import ru.seller_support.assignment.service.UserService;
 
@@ -35,7 +35,7 @@ public class AdminController {
     }
 
     @PostMapping(path = "/users")
-    public void createUser(@RequestBody CreateUserRequest request) {
+    public void createUser(@RequestBody @Valid CreateUserRequest request) {
         userService.saveUser(request);
     }
 
@@ -44,14 +44,9 @@ public class AdminController {
         userService.deleteUser(request);
     }
 
-    @PatchMapping(path = "/users/roles")
-    public void addRolesToUser(@RequestBody AddRolesRequest request) {
-        userService.addRolesToUser(request);
-    }
-
-    @DeleteMapping(path = "/users/roles")
-    public void deleteRoleFromUser(@RequestBody DeleteRoleRequest request) {
-        userService.deleteRoleFromUser(request);
+    @PutMapping(path = "/users")
+    public void updateUser(@RequestBody @Valid UserChangeRequest request) {
+        userService.updateUser(request);
     }
 
     @GetMapping("/roles")
