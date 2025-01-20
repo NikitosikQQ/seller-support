@@ -23,7 +23,7 @@ public class AdminController {
     private final UserService userService;
 
     @GetMapping(path = "/users")
-    public List<UserResponse> createUser() {
+    public List<UserResponse> getUsers() {
         List<UserEntity> users = userService.findAllUsers();
         return users.stream()
                 .map(user -> UserResponse.builder()

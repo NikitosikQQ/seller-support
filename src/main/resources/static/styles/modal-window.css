@@ -254,3 +254,29 @@ modal-content .checkbox-group {
     font-size: 1rem;
     color: #333;
 }
+
+/* Стиль для отображения ролей */
+.modal-content .marketplace-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.modal-content .marketplace-item:hover {
+    background-color: #f1f1f1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content .marketplace-item span {
+    flex-grow: 1;
+    font-size: 1rem;
+    color: #333;
+}

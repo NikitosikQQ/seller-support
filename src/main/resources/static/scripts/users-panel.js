@@ -1,7 +1,5 @@
 import {checkTokenExpirationAndGet} from "./panel.js";
 
-
-
 export async function fetchUsers() {
 
     var token = checkTokenExpirationAndGet();

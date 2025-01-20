@@ -1,4 +1,5 @@
-import {fetchUsers, fetchDeleteUser} from './users-panel.js';
+import {fetchUsers} from './users-panel.js';
+import {fetchShops} from './shops-panel.js';
 
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -20,6 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Слушаем клики по разделам меню
     document.getElementById('users-section').addEventListener('click', () => loadSection('admin'));
+    document.getElementById('shops-section').addEventListener('click', () => loadSection('shops'));
     document.getElementById('reports-section').addEventListener('click', () => loadSection('user'));
 
     document.getElementById('logout-btn').addEventListener('click', () => {
@@ -35,6 +37,8 @@ async function loadSection(section) {
         await fetchUsers();
     } else if (section === 'user') {
         openAssignmentReports()
+    } else if (section === 'shops') {
+        await fetchShops();
     }
 }
 
@@ -42,6 +46,7 @@ async function loadSection(section) {
 function showAdminMenu() {
     document.getElementById('users-section').style.display = 'block';
     document.getElementById('reports-section').style.display = 'block';
+    document.getElementById('shops-section').style.display = 'block';
     openAssignmentReports();
 
 }
@@ -49,6 +54,7 @@ function showAdminMenu() {
 // Функция для отображения меню для обычного пользователя
 function showUserMenu() {
     document.getElementById('users-section').style.display = 'none';  // Скрыть раздел "Пользователи"
+    document.getElementById('shops-section').style.display = 'none'; // Скрыть раздел "Магазины"
     document.getElementById('reports-section').style.display = 'block'; // Показать только "Отчеты"
     openAssignmentReports();
 }
