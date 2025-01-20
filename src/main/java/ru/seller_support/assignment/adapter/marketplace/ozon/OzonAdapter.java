@@ -9,7 +9,6 @@ import ru.seller_support.assignment.adapter.marketplace.ozon.inner.FilterBody;
 import ru.seller_support.assignment.adapter.marketplace.ozon.mapper.OzonAdapterMapper;
 import ru.seller_support.assignment.adapter.marketplace.ozon.request.GetUnfulfilledListRequest;
 import ru.seller_support.assignment.adapter.marketplace.ozon.response.GetUnfulfilledListResponse;
-import ru.seller_support.assignment.adapter.postgres.entity.ArticlePromoInfoEntity;
 import ru.seller_support.assignment.adapter.postgres.entity.ShopEntity;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
