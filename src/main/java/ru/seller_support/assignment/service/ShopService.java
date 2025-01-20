@@ -10,7 +10,7 @@ import ru.seller_support.assignment.controller.dto.request.CreateShopRequest;
 import ru.seller_support.assignment.controller.dto.request.DeleteShopRequest;
 import ru.seller_support.assignment.controller.dto.request.ShopChangeRequest;
 import ru.seller_support.assignment.exception.ShopChangeException;
-import ru.seller_support.assignment.service.enums.Marketplace;
+import ru.seller_support.assignment.domain.enums.Marketplace;
 
 import java.util.Arrays;
 import java.util.List;

@@ -3,7 +3,7 @@ package ru.seller_support.assignment.adapter.postgres.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import ru.seller_support.assignment.service.enums.Marketplace;
+import ru.seller_support.assignment.domain.enums.Marketplace;
 
 import java.util.UUID;
 

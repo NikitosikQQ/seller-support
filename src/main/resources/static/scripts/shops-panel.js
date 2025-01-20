@@ -56,8 +56,8 @@ export async function fetchEditShop(id, updatedData) {
                 name: updatedData.name,
                 palletNumber: updatedData.palletNumber,
                 marketplace: updatedData.marketplace,
-                apiKey: updatedData.apiKey,
-                clientId: updatedData.clientId
+                apiKey: updatedData.apiKey === 'undefined' ? null : updatedData.apiKey,
+                clientId: updatedData.clientId === 'undefined' ? null : updatedData.clientId
             })
         });
         if (!response.ok) {
@@ -258,8 +258,8 @@ export function openCreateShopModal() {
         const newShop = {
             name: shopNameInput.value.trim(),
             palletNumber: palletNumberInput.value,
-            apiKey: apiKeyInput.value,
-            clientId: clientIdInput.value,
+            apiKey: apiKeyInput.value === 'undefined' ? null : apiKeyInput.value,
+            clientId: clientIdInput.value === 'undefined' ? null : clientIdInput.value,
             marketplace: selectedMarketplace, // Передаем выбранный маркетплейс
         };
 
@@ -370,7 +370,7 @@ export function openEditShopModal(shop) {
             radio.name = 'marketplace'; // Указываем одно имя для группы радиокнопок
             radio.id = `marketplace-${marketplace}`;
             radio.value = marketplace;
-            if(marketplace === shop.marketplace) {
+            if (marketplace === shop.marketplace) {
                 radio.checked = 'true';
             }
 
@@ -417,6 +417,7 @@ export function openEditShopModal(shop) {
             marketplace: selectedMarketplace, // Передаем выбранный маркетплейс
         };
 
+        console.log(updatedData)
         fetchEditShop(shop.id, updatedData);
         modal.remove();
     });

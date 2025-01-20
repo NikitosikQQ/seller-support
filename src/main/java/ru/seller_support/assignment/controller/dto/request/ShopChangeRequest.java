@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
-import ru.seller_support.assignment.service.enums.Marketplace;
+import ru.seller_support.assignment.domain.enums.Marketplace;
 
 import java.util.UUID;
 
