@@ -69,7 +69,7 @@ public class ShopService {
         if (Objects.nonNull(request.getClientId())) {
             shop.setClientId(request.getClientId());
         }
-        if (Objects.nonNull(request.getClientId())) {
+        if (Objects.nonNull(request.getApiKey())) {
             shop.setApiKey(encryptService.encrypt(request.getApiKey()));
         }
         shopRepository.save(shop);

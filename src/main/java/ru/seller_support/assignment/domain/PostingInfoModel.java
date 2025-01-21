@@ -17,6 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 public class PostingInfoModel {
     private Marketplace marketplace;
+    private String shopName;
     private Integer palletNumber;
     private String postingNumber;
     private Instant inProcessAt;

@@ -4,10 +4,11 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
-import ru.seller_support.assignment.adapter.marketplace.ozon.inner.Posting;
-import ru.seller_support.assignment.adapter.marketplace.ozon.inner.Product;
+import ru.seller_support.assignment.adapter.marketplace.ozon.dto.inner.Posting;
+import ru.seller_support.assignment.adapter.marketplace.ozon.dto.inner.Product;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.ProductModel;
+import ru.seller_support.assignment.util.CommonUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -20,7 +21,8 @@ public interface OzonAdapterMapper {
     @Mapping(target = "marketplace", constant = "OZON")
     @Mapping(target = "palletNumber", source = "palletNumber")
     PostingInfoModel toPostingInfoModel(Posting posting,
-                                        Integer palletNumber);
+                                        Integer palletNumber,
+                                        String shopName);
 
     @Mapping(target = "price", source = "product.price", qualifiedByName = "price")
     @Mapping(target = "totalPrice", expression = "java(getTotalPrice(product))")
@@ -30,6 +32,7 @@ public interface OzonAdapterMapper {
     @Mapping(target = "length", source = "product.offerId", qualifiedByName = "length")
     @Mapping(target = "width", source = "product.offerId", qualifiedByName = "width")
     @Mapping(target = "promoName", source = "product.offerId", qualifiedByName = "promoName")
+    @Mapping(target = "comment", source = "product.offerId", qualifiedByName = "comment")
     @Mapping(target = "areaInMeters", ignore = true)
     @Mapping(target = "pricePerSquareMeter", ignore = true)
     ProductModel toProductModel(Product product);
@@ -56,7 +59,22 @@ public interface OzonAdapterMapper {
 
     @Named("promoName")
     default String getPromoName(String offerId) {
-        return offerId.split(ARTICLE_SEPARATOR)[6];
+        String promoName = offerId.split(ARTICLE_SEPARATOR)[6];
+        int firstSpaceIndex = promoName.indexOf(CommonUtils.SPACE);
+        if (firstSpaceIndex == -1) {
+            return promoName;
+        }
+        return promoName.substring(0, firstSpaceIndex);
+    }
+
+    @Named("comment")
+    default String getComment(String offerId) {
+        String promoName = offerId.split(ARTICLE_SEPARATOR)[6];
+        int firstSpaceIndex = promoName.indexOf(CommonUtils.SPACE);
+        if (firstSpaceIndex == -1) {
+            return CommonUtils.EMPTY_STRING;
+        }
+        return promoName.substring(firstSpaceIndex + 1);
     }
 
     @Named("price")

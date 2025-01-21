@@ -25,4 +25,5 @@ public class ProductModel {
     private Integer colorNumber;
     private String color;
     private String promoName;
+    private String comment;
 }

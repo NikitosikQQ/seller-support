@@ -1,4 +1,4 @@
-package ru.seller_support.assignment.adapter.marketplace.ozon.inner;
+package ru.seller_support.assignment.adapter.marketplace.ozon.dto.inner;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;

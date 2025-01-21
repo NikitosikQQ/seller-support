@@ -5,10 +5,10 @@ import org.springframework.stereotype.Service;
 import ru.seller_support.assignment.adapter.marketplace.MarketplaceAdapter;
 import ru.seller_support.assignment.adapter.marketplace.ozon.client.OzonClient;
 import ru.seller_support.assignment.adapter.marketplace.ozon.common.OzonСonstants;
-import ru.seller_support.assignment.adapter.marketplace.ozon.inner.FilterBody;
+import ru.seller_support.assignment.adapter.marketplace.ozon.dto.inner.FilterBody;
+import ru.seller_support.assignment.adapter.marketplace.ozon.dto.request.GetUnfulfilledListRequest;
+import ru.seller_support.assignment.adapter.marketplace.ozon.dto.response.GetUnfulfilledListResponse;
 import ru.seller_support.assignment.adapter.marketplace.ozon.mapper.OzonAdapterMapper;
-import ru.seller_support.assignment.adapter.marketplace.ozon.request.GetUnfulfilledListRequest;
-import ru.seller_support.assignment.adapter.marketplace.ozon.response.GetUnfulfilledListResponse;
 import ru.seller_support.assignment.adapter.postgres.entity.ShopEntity;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
@@ -29,21 +29,21 @@ public class OzonAdapter extends MarketplaceAdapter {
     }
 
     @Override
-    public List<PostingInfoModel> getNewPosting(ShopEntity shop) {
-        GetUnfulfilledListRequest request = buildRequest();
+    public List<PostingInfoModel> getNewPosting(ShopEntity shop, Instant from, Instant to) {
+        GetUnfulfilledListRequest request = buildRequest(from, to);
         GetUnfulfilledListResponse response = ozonClient.getUnfulfilledOrders(shop.getApiKey(), shop.getClientId(), request);
 
         return response.getResult().getPostings().stream()
-                .map(post -> mapper.toPostingInfoModel(post, shop.getPalletNumber()))
+                .map(post -> mapper.toPostingInfoModel(post, shop.getPalletNumber(), shop.getName()))
                 .toList();
     }
 
-    private GetUnfulfilledListRequest buildRequest() {
+    private GetUnfulfilledListRequest buildRequest(Instant from, Instant to) {
         return GetUnfulfilledListRequest.builder()
                 .dir(OzonСonstants.ASC_SORT)
                 .filter(FilterBody.builder()
-                        .cutoffFrom(Instant.parse("2025-01-17T21:00:00Z"))
-                        .cutoffTo(Instant.parse("2025-01-20T21:00:00Z"))
+                        .cutoffFrom(from)
+                        .cutoffTo(to)
                         .status(OzonСonstants.OzonStatus.AWAITING_DELIVER)
                         .build())
                 .limit(OzonСonstants.MAX_LIMIT)

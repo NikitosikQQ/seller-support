@@ -1,11 +1,11 @@
-package ru.seller_support.assignment.adapter.marketplace.ozon.request;
+package ru.seller_support.assignment.adapter.marketplace.ozon.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
-import ru.seller_support.assignment.adapter.marketplace.ozon.inner.FilterBody;
+import ru.seller_support.assignment.adapter.marketplace.ozon.dto.inner.FilterBody;
 
 @Data
 @Builder(toBuilder = true)

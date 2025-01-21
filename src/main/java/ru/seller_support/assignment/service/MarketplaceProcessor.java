@@ -9,9 +9,12 @@ import ru.seller_support.assignment.adapter.postgres.entity.ShopEntity;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.ProductModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
+import ru.seller_support.assignment.util.CommonUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -29,19 +32,22 @@ public class MarketplaceProcessor {
     private final ExcelService excelService;
     private final ArticlePromoInfoService articlePromoInfoService;
 
-    public void createFile() {
-        excelService.createReportFile();
+    public void createFile(List<PostingInfoModel> postings) {
+        excelService.createReportFile(postings);
     }
 
     @SneakyThrows
-    public List<PostingInfoModel> getNewPostings() {
+    public List<PostingInfoModel> getNewPostings(String from, String to) {
+        Instant fromDate = CommonUtils.parseStringToInstant(from);
+        Instant toDate = CommonUtils.parseStringToInstant(to);
+
         List<ShopEntity> shops = shopService.findAll();
 
         ExecutorService executor = Executors.newFixedThreadPool(shops.size());
 
         List<CompletableFuture<List<PostingInfoModel>>> futures = shops.stream()
                 .map(shop -> CompletableFuture.supplyAsync(() ->
-                        getPostingDataByShop(shop), executor))
+                        getPostingDataByShop(shop, fromDate, toDate), executor))
                 .toList();
 
         CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
@@ -56,12 +62,15 @@ public class MarketplaceProcessor {
 
         executor.shutdown();
         preparePostingResult(postingInfoModels);
+
+        createFile(sortPostingsByColorNumber(postingInfoModels));
+
         return postingInfoModels;
     }
 
-    private List<PostingInfoModel> getPostingDataByShop(ShopEntity shop) {
+    private List<PostingInfoModel> getPostingDataByShop(ShopEntity shop, Instant from, Instant to) {
         MarketplaceAdapter adapter = getAdapterByMarketplace(shop.getMarketplace());
-        return adapter.getNewPosting(shop);
+        return adapter.getNewPosting(shop, from, to);
     }
 
     private MarketplaceAdapter getAdapterByMarketplace(Marketplace marketplace) {
@@ -89,7 +98,8 @@ public class MarketplaceProcessor {
                 .filter(promo -> promo.getName().equalsIgnoreCase(product.getPromoName()))
                 .map(ArticlePromoInfoEntity::getQuantityPerSku)
                 .findFirst().orElseThrow(() ->
-                        new IllegalArgumentException(String.format("Не найдено промо %s", product.getPromoName())));
+                        new IllegalArgumentException(String.format(
+                                "Не найдено промо %s, весь артикул %s", product.getPromoName(), product.getArticle())));
     }
 
     private BigDecimal getAreaInMeter(ProductModel product) {
@@ -97,12 +107,18 @@ public class MarketplaceProcessor {
         BigDecimal width = BigDecimal.valueOf(product.getWidth());
         BigDecimal quantity = BigDecimal.valueOf(product.getQuantity());
 
-        return length.multiply(width).divide(MM_TO_METER, 2, RoundingMode.HALF_UP).multiply(quantity);
+        return length.multiply(width).multiply(quantity).divide(MM_TO_METER, 2, RoundingMode.HALF_UP);
     }
 
     private BigDecimal getPricePerSquareMeter(ProductModel product) {
         BigDecimal totalPrice = product.getTotalPrice();
         BigDecimal areaInMeters = product.getAreaInMeters();
         return totalPrice.divide(areaInMeters, 0, RoundingMode.HALF_UP);
+    }
+
+    public List<PostingInfoModel> sortPostingsByColorNumber(List<PostingInfoModel> postings) {
+        return postings.stream()
+                .sorted(Comparator.comparing(post -> post.getProducts().getFirst().getColorNumber())) // Сортировка по первому продукту
+                .toList();
     }
 }

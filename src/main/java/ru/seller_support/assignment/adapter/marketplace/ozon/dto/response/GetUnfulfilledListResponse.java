@@ -1,4 +1,4 @@
-package ru.seller_support.assignment.adapter.marketplace.ozon.response;
+package ru.seller_support.assignment.adapter.marketplace.ozon.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
-import ru.seller_support.assignment.adapter.marketplace.ozon.inner.Posting;
+import ru.seller_support.assignment.adapter.marketplace.ozon.dto.inner.Posting;
 
 import java.util.List;
 
