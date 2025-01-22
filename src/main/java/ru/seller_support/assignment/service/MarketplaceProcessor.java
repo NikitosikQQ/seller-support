@@ -1,7 +1,7 @@
 package ru.seller_support.assignment.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.seller_support.assignment.adapter.marketplace.MarketplaceAdapter;
 import ru.seller_support.assignment.adapter.postgres.entity.ArticlePromoInfoEntity;
@@ -10,6 +10,8 @@ import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.ProductModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
 import ru.seller_support.assignment.util.CommonUtils;
+import ru.seller_support.assignment.util.FileUtils;
+import ru.seller_support.assignment.util.PdfUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -17,14 +19,18 @@ import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MarketplaceProcessor {
 
     private static final BigDecimal MM_TO_METER = BigDecimal.valueOf(1000000);
+    private static final String PDF_NAME_PATTERN = "Этикетки %s.pdf";
+    private static final String EXCEL_NAME_PATTERN = "Заказы %s.xlsx";
 
     private final List<MarketplaceAdapter> adapters;
 
@@ -32,12 +38,7 @@ public class MarketplaceProcessor {
     private final ExcelService excelService;
     private final ArticlePromoInfoService articlePromoInfoService;
 
-    public void createFile(List<PostingInfoModel> postings) {
-        excelService.createReportFile(postings);
-    }
-
-    @SneakyThrows
-    public List<PostingInfoModel> getNewPostings(String from, String to) {
+    public byte[] getNewPostings(String from, String to, Instant now) {
         Instant fromDate = CommonUtils.parseStringToInstant(from);
         Instant toDate = CommonUtils.parseStringToInstant(to);
 
@@ -45,9 +46,35 @@ public class MarketplaceProcessor {
 
         ExecutorService executor = Executors.newFixedThreadPool(shops.size());
 
+        List<PostingInfoModel> postings = getPostingInfoModelByShopAsync(shops, fromDate, toDate, executor);
+        log.info("Успешно получены отправления в количестве {}", postings.size());
+
+        List<byte[]> pdfRawPackagesBytes = getPackagesOfPostingsAsync(shops, postings, executor);
+        log.info("Успешно получены этикетки в количестве {}", postings.size());
+
+        executor.shutdown();
+
+        preparePostingResult(postings);
+
+        byte[] excelBytes = excelService.createReportFile(postings);
+        String excelName = CommonUtils.getFormattedStringWithInstant(EXCEL_NAME_PATTERN, now);
+        log.info("Успешно подготовлен excel-файл");
+
+        byte[] pdfBytes = PdfUtils.mergePdfFiles(pdfRawPackagesBytes);
+        String pdfFileName = CommonUtils.getFormattedStringWithInstant(PDF_NAME_PATTERN, now);
+        log.info("Успешно подготовлен pdf-файл");
+
+        return FileUtils.createZip(excelBytes, excelName, pdfBytes, pdfFileName);
+    }
+
+    private List<PostingInfoModel> getPostingInfoModelByShopAsync(List<ShopEntity> shops,
+                                                                  Instant from,
+                                                                  Instant to,
+                                                                  ExecutorService executor) {
+        List<PostingInfoModel> postingInfoModels;
         List<CompletableFuture<List<PostingInfoModel>>> futures = shops.stream()
                 .map(shop -> CompletableFuture.supplyAsync(() ->
-                        getPostingDataByShop(shop, fromDate, toDate), executor))
+                        getPostingDataByShop(shop, from, to), executor))
                 .toList();
 
         CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
@@ -58,14 +85,43 @@ public class MarketplaceProcessor {
                         .flatMap(List::stream)
                         .toList());
 
-        List<PostingInfoModel> postingInfoModels = allResultsFuture.get();
+        try {
+            postingInfoModels = allResultsFuture.get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException("Ошибка при попытке асинхронно запросить отправления по маркетплейсам", e);
+        }
+        return sortPostingsByMarketplaceAndColorNumber(postingInfoModels);
+    }
 
-        executor.shutdown();
-        preparePostingResult(postingInfoModels);
+    private List<byte[]> getPackagesOfPostingsAsync(List<ShopEntity> shops,
+                                                    final List<PostingInfoModel> postingInfoModels,
+                                                    ExecutorService executor) {
+        List<CompletableFuture<List<byte[]>>> futures = shops.stream()
+                .map(shop -> CompletableFuture.supplyAsync(() ->
+                        getPdfBytesPackagesOfPostingsByShop(shop, postingInfoModels), executor))
+                .toList();
 
-        createFile(sortPostingsByColorNumber(postingInfoModels));
+        CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 
-        return postingInfoModels;
+        CompletableFuture<List<byte[]>> allResultsFuture = allFutures.thenApply(v ->
+                futures.stream()
+                        .map(CompletableFuture::join)
+                        .flatMap(List::stream)
+                        .toList());
+
+        try {
+            return allResultsFuture.get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException("Ошибка при попытке асинхронно запросить этикетки по маркетплейсам", e);
+        }
+    }
+
+    private List<byte[]> getPdfBytesPackagesOfPostingsByShop(ShopEntity shop, List<PostingInfoModel> postings) {
+        List<PostingInfoModel> actualPostings = postings.stream()
+                .filter(post -> post.getShopName().equalsIgnoreCase(shop.getName()))
+                .toList();
+        MarketplaceAdapter adapter = getAdapterByMarketplace(shop.getMarketplace());
+        return adapter.getPackagesByPostingNumbers(shop, actualPostings);
     }
 
     private List<PostingInfoModel> getPostingDataByShop(ShopEntity shop, Instant from, Instant to) {
@@ -83,8 +139,7 @@ public class MarketplaceProcessor {
     private void preparePostingResult(List<PostingInfoModel> postingInfoModels) {
         List<ArticlePromoInfoEntity> articlePromoInfos = articlePromoInfoService.findAll();
         postingInfoModels.stream()
-                .map(PostingInfoModel::getProducts)
-                .flatMap(List::stream)
+                .map(PostingInfoModel::getProduct)
                 .forEach(product -> {
                     int currentQuantity = product.getQuantity();
                     product.setQuantity(currentQuantity * getRealQuantity(product, articlePromoInfos));
@@ -116,9 +171,11 @@ public class MarketplaceProcessor {
         return totalPrice.divide(areaInMeters, 0, RoundingMode.HALF_UP);
     }
 
-    public List<PostingInfoModel> sortPostingsByColorNumber(List<PostingInfoModel> postings) {
+    private List<PostingInfoModel> sortPostingsByMarketplaceAndColorNumber(List<PostingInfoModel> postings) {
         return postings.stream()
-                .sorted(Comparator.comparing(post -> post.getProducts().getFirst().getColorNumber())) // Сортировка по первому продукту
+                .sorted(Comparator.comparing(PostingInfoModel::getMarketplace)
+                        .thenComparing(post -> post.getProduct().getColorNumber()))
                 .toList();
     }
+
 }

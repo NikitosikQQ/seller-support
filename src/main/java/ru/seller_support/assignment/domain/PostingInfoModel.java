@@ -8,7 +8,6 @@ import lombok.extern.jackson.Jacksonized;
 import ru.seller_support.assignment.domain.enums.Marketplace;
 
 import java.time.Instant;
-import java.util.List;
 
 @Data
 @Builder(toBuilder = true)
@@ -21,5 +20,5 @@ public class PostingInfoModel {
     private Integer palletNumber;
     private String postingNumber;
     private Instant inProcessAt;
-    private List<ProductModel> products;
+    private ProductModel product;
 }

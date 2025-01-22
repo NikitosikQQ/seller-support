@@ -6,6 +6,7 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 import ru.seller_support.assignment.adapter.marketplace.ozon.dto.inner.Posting;
 import ru.seller_support.assignment.adapter.marketplace.ozon.dto.inner.Product;
+import ru.seller_support.assignment.adapter.postgres.entity.ShopEntity;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.ProductModel;
 import ru.seller_support.assignment.util.CommonUtils;
@@ -19,10 +20,11 @@ public interface OzonAdapterMapper {
     String ARTICLE_SEPARATOR = "/";
 
     @Mapping(target = "marketplace", constant = "OZON")
-    @Mapping(target = "palletNumber", source = "palletNumber")
+    @Mapping(target = "palletNumber", source = "shop.palletNumber")
+    @Mapping(target = "shopName", source = "shop.name")
+    @Mapping(target = "product", expression = "java(getProduct(posting, shop))")
     PostingInfoModel toPostingInfoModel(Posting posting,
-                                        Integer palletNumber,
-                                        String shopName);
+                                        ShopEntity shop);
 
     @Mapping(target = "price", source = "product.price", qualifiedByName = "price")
     @Mapping(target = "totalPrice", expression = "java(getTotalPrice(product))")
@@ -86,6 +88,15 @@ public interface OzonAdapterMapper {
         BigDecimal price = new BigDecimal(product.getPrice()).setScale(2, RoundingMode.HALF_UP);
         BigDecimal multiplier = BigDecimal.valueOf(product.getQuantity());
         return price.multiply(multiplier);
+    }
+
+    default ProductModel getProduct(Posting posting, ShopEntity shop) {
+        if (posting.getProducts().size() != 1) {
+            throw new IllegalArgumentException(String.format(
+                    "Количество артикулов в отправлении %s магазина %s не равна 1",
+                    posting.getPostingNumber(), shop.getName()));
+        }
+        return toProductModel(posting.getProducts().getFirst());
     }
 
 
