@@ -15,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import ru.seller_support.assignment.controller.error.dto.ErrorResponse;
+import ru.seller_support.assignment.exception.PostingGenerationException;
 import ru.seller_support.assignment.exception.RoleChangeException;
 import ru.seller_support.assignment.exception.UserChangeException;
 
@@ -47,6 +48,13 @@ public class GlobalControllerAdvice {
     @ExceptionHandler({UserChangeException.class})
     public ResponseEntity<ErrorResponse> handleException(UserChangeException ex) {
         log.warn("Ошибка при работе с пользователями: {}", ex.getMessage(), ex);
+        ErrorResponse body = errorResolver.resolve(ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler({PostingGenerationException.class})
+    public ResponseEntity<ErrorResponse> handleException(PostingGenerationException ex) {
+        log.warn("Ошибка при генерации отчета новых отправлений: {}", ex.getMessage(), ex);
         ErrorResponse body = errorResolver.resolve(ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }

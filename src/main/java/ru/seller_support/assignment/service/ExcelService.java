@@ -11,7 +11,6 @@ import ru.seller_support.assignment.util.CommonUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -63,6 +62,9 @@ public class ExcelService {
     );
 
     public byte[] createReportFile(List<PostingInfoModel> postings) {
+        if (Objects.isNull(postings) || postings.isEmpty()) {
+            return null;
+        }
         int nextRowIndex;
         try (Workbook wb = initialWorkBook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             nextRowIndex = fillSheetLDCPRaspil(wb, postings);

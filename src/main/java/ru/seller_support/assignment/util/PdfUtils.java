@@ -10,11 +10,15 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 @UtilityClass
 public class PdfUtils {
 
     public static byte[] mergePdfFiles(List<byte[]> pdfFiles) {
+        if (Objects.isNull(pdfFiles) || pdfFiles.isEmpty()) {
+            return null;
+        }
         ByteArrayOutputStream mergedPdf = new ByteArrayOutputStream();
 
         try (PdfDocument pdfDoc = new PdfDocument(new PdfWriter(mergedPdf))) {

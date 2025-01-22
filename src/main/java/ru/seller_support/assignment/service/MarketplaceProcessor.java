@@ -9,6 +9,7 @@ import ru.seller_support.assignment.adapter.postgres.entity.ShopEntity;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.ProductModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
+import ru.seller_support.assignment.exception.PostingGenerationException;
 import ru.seller_support.assignment.util.CommonUtils;
 import ru.seller_support.assignment.util.FileUtils;
 import ru.seller_support.assignment.util.PdfUtils;
@@ -18,6 +19,7 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -64,7 +66,13 @@ public class MarketplaceProcessor {
         String pdfFileName = CommonUtils.getFormattedStringWithInstant(PDF_NAME_PATTERN, now);
         log.info("Успешно подготовлен pdf-файл");
 
-        return FileUtils.createZip(excelBytes, excelName, pdfBytes, pdfFileName);
+        byte[] zip = FileUtils.createZip(excelBytes, excelName, pdfBytes, pdfFileName);
+        if (Objects.isNull(zip)) {
+            throw new PostingGenerationException(String.format(
+                    "Нет отгружаемых отправлений на период с %s по %s", fromDate, toDate));
+        }
+
+        return zip;
     }
 
     private List<PostingInfoModel> getPostingInfoModelByShopAsync(List<ShopEntity> shops,
@@ -88,7 +96,8 @@ public class MarketplaceProcessor {
         try {
             postingInfoModels = allResultsFuture.get();
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Ошибка при попытке асинхронно запросить отправления по маркетплейсам", e);
+            throw new RuntimeException(String.format(
+                    "Ошибка при попытке асинхронно запросить отправления по маркетплейсам %s", e.getMessage()));
         }
         return sortPostingsByMarketplaceAndColorNumber(postingInfoModels);
     }
@@ -112,7 +121,8 @@ public class MarketplaceProcessor {
         try {
             return allResultsFuture.get();
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Ошибка при попытке асинхронно запросить этикетки по маркетплейсам", e);
+            throw new RuntimeException(String.format("Ошибка при попытке асинхронно запросить этикетки по маркетплейсам %s",
+                    e.getMessage()));
         }
     }
 

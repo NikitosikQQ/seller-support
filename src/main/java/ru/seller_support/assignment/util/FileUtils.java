@@ -3,6 +3,7 @@ package ru.seller_support.assignment.util;
 import lombok.experimental.UtilityClass;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -11,6 +12,9 @@ public class FileUtils {
 
     public static byte[] createZip(byte[] excelBytes, String excelFileName,
                                    byte[] pdfBytes, String pdfName) {
+        if (Objects.isNull(excelBytes) || Objects.isNull(pdfBytes)) {
+            return null;
+        }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (ZipOutputStream zos = new ZipOutputStream(baos)) {
             ZipEntry excelEntry = new ZipEntry(excelFileName);
