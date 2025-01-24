@@ -20,10 +20,14 @@ public class ArticlePromoInfoEntity {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @Column(name = "material", nullable = false)
-    private String material;
+    @Column(name = "type", nullable = false)
+    private String type;
 
     @Column(name = "quantity_per_sku", nullable = false)
     private Integer quantityPerSku;
+
+    @ManyToOne
+    @JoinColumn(name = "material_id", nullable = false)
+    private MaterialEntity material;
 
 }
