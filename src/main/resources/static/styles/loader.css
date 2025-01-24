@@ -1,0 +1,29 @@
+.loader {
+    border: 5px solid #e0e0e0;
+    border-top: 5px solid rgba(2, 2, 2, 0.89);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 1rem auto;
+    display: block;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.hidden {
+    display: none;
+}
+
+.success-message {
+    color: #3a3939;
+    text-align: center;
+    margin-top: 15px;
+}

@@ -143,3 +143,25 @@ body {
 .delete-button:hover {
     background-color: #e53935;
 }
+
+/* Кнопка */
+.create-report-button {
+    background: #3b3b3b;
+    color: #ffffff;
+    padding: 0.85rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease, box-shadow 0.2s ease;
+}
+
+.create-report-button:hover {
+    background: #030303;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.79);
+}
+
+.create-report-button:active {
+    background: #2c2c2c;
+}

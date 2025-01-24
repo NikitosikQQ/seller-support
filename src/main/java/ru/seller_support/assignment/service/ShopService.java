@@ -9,8 +9,8 @@ import ru.seller_support.assignment.adapter.postgres.repository.ShopRepository;
 import ru.seller_support.assignment.controller.dto.request.CreateShopRequest;
 import ru.seller_support.assignment.controller.dto.request.DeleteShopRequest;
 import ru.seller_support.assignment.controller.dto.request.ShopChangeRequest;
-import ru.seller_support.assignment.exception.ShopChangeException;
 import ru.seller_support.assignment.domain.enums.Marketplace;
+import ru.seller_support.assignment.exception.ShopChangeException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,11 +34,12 @@ public class ShopService {
         shop.setMarketplace(request.getMarketplace());
         shop.setPalletNumber(request.getPalletNumber());
         shop.setApiKey(encryptedApiKey);
+        shop.setActive(true);
         shopRepository.save(shop);
     }
 
     public List<ShopEntity> findAll() {
-        return shopRepository.findAll().stream()
+        return shopRepository.findAllByActive(true).stream()
                 .peek(shop -> shop.setApiKey(encryptService.decrypt(shop.getApiKey())))
                 .toList();
     }

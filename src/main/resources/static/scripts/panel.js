@@ -1,5 +1,6 @@
 import {fetchUsers} from './users-panel.js';
 import {fetchShops} from './shops-panel.js';
+import {openModal} from './reports-panel.js'
 
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -36,7 +37,7 @@ async function loadSection(section) {
     if (section === 'admin') {
         await fetchUsers();
     } else if (section === 'user') {
-        openAssignmentReports()
+        openReportsMenu()
     } else if (section === 'shops') {
         await fetchShops();
     }
@@ -47,7 +48,7 @@ function showAdminMenu() {
     document.getElementById('users-section').style.display = 'block';
     document.getElementById('reports-section').style.display = 'block';
     document.getElementById('shops-section').style.display = 'block';
-    openAssignmentReports();
+    openReportsMenu();
 
 }
 
@@ -56,10 +57,10 @@ function showUserMenu() {
     document.getElementById('users-section').style.display = 'none';  // Скрыть раздел "Пользователи"
     document.getElementById('shops-section').style.display = 'none'; // Скрыть раздел "Магазины"
     document.getElementById('reports-section').style.display = 'block'; // Показать только "Отчеты"
-    openAssignmentReports();
+    openReportsMenu();
 }
 
-function openAssignmentReports() {
+function openReportsMenu() {
     const container = document.getElementById('main-container');
 
     container.innerHTML = '';
@@ -68,9 +69,11 @@ function openAssignmentReports() {
     header.textContent = 'Генерация отчетов';  // Заголовок
     container.appendChild(header);
 
-    const content = document.createElement('p');
-    content.textContent = "ОТЧЕТЫ ЕЕЕ";  // Текст
-    container.appendChild(content);
+    const button = document.createElement('button');
+    button.textContent = 'Отправления на отгрузке';
+    button.className = 'create-report-button'
+    button.addEventListener('click', () => openModal());
+    container.appendChild(button);
 }
 
 // Функция для декодирования токена и получения ролей

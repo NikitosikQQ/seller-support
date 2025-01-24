@@ -17,9 +17,11 @@ public class CommonUtils {
             .withZone(ZoneOffset.UTC);
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy H:mm")
             .withZone(ZoneOffset.UTC);
+    public static final DateTimeFormatter REQUEST_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
 
     public static Instant parseStringToInstant(String date) {
-        LocalDate resultDate = LocalDate.parse(date, DATE_FORMATTER);
+        LocalDate resultDate = LocalDate.parse(date, REQUEST_DATE_FORMATTER);
         return resultDate.atStartOfDay(ZoneOffset.UTC).toInstant().plusSeconds(COUNT_OF_SECONDS_FOR_END_OF_DAY);
     }
 

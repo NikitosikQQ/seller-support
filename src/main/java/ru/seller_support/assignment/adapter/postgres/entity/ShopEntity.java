@@ -34,5 +34,7 @@ public class ShopEntity {
     @Column(name = "clientId")
     private String clientId;
 
+    @Column(name = "active")
+    private Boolean active;
 
 }
