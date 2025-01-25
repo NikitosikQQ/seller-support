@@ -3,6 +3,8 @@ package ru.seller_support.assignment.domain.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Arrays;
+
 @Getter
 @AllArgsConstructor
 public enum SortingPostingByParam {
@@ -11,5 +13,12 @@ public enum SortingPostingByParam {
     COLOR_NAME("Наименование цвета");
 
     private final String value;
+
+    public static SortingPostingByParam of(String value) {
+        return Arrays.stream(values())
+                .filter(param -> param.getValue().equalsIgnoreCase(value))
+                .findFirst()
+                .orElse(COLOR_NUMBER);
+    }
 
 }

@@ -1,8 +1,7 @@
 package ru.seller_support.assignment.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,10 +19,10 @@ import java.time.Instant;
 @RequestMapping("/api/v1/reports")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('USER')")
+@Slf4j
 public class ReportController {
 
     private static final String ZIP_NAME = "Postings";
-    private static final Logger log = LoggerFactory.getLogger(ReportController.class);
 
     private final MarketplaceProcessor marketplaceProcessor;
 

@@ -280,6 +280,36 @@ modal-content .checkbox-group {
     font-size: 1rem;
     color: #333;
 }
+.material-dropdown {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    color: #333;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    appearance: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    margin-bottom: 1rem;
+}
+
+.material-dropdown:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
+}
+
+/* Ограничение высоты для списка */
+.material-dropdown option {
+    padding: 0.5rem;
+}
+
+/* Контейнер, чтобы ограничить высоту выпадающего списка */
+.material-scrollable {
+    max-height: 150px;
+    overflow-y: auto; /* Скроллинг по вертикали */
+}
 
 /* Кнопка */
 .create-report-button {

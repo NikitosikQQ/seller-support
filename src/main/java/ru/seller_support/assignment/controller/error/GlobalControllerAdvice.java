@@ -15,9 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import ru.seller_support.assignment.controller.error.dto.ErrorResponse;
-import ru.seller_support.assignment.exception.PostingGenerationException;
-import ru.seller_support.assignment.exception.RoleChangeException;
-import ru.seller_support.assignment.exception.UserChangeException;
+import ru.seller_support.assignment.exception.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +39,13 @@ public class GlobalControllerAdvice {
     @ExceptionHandler({RoleChangeException.class})
     public ResponseEntity<ErrorResponse> handleException(RoleChangeException ex) {
         log.warn("Ошибка при работе с ролями: {}", ex.getMessage(), ex);
+        ErrorResponse body = errorResolver.resolve(ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler({ArticleChangeException.class, ArticleMappingException.class})
+    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
+        log.warn("Ошибка при работе с артикулом: {}", ex.getMessage(), ex);
         ErrorResponse body = errorResolver.resolve(ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }

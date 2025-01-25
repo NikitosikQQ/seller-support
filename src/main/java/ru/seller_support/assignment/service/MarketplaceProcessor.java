@@ -93,7 +93,7 @@ public class MarketplaceProcessor {
             postingInfoModels = allResultsFuture.get();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(String.format(
-                    "Ошибка при попытке асинхронно запросить отправления по маркетплейсам %s", e.getMessage()));
+                    "Ошибка при попытке асинхронно запросить отправления по маркетплейсам %s", e.getMessage()), e);
         }
         return postingPreparationService.sortPostingsByMarketplaceAndColorNumber(postingInfoModels);
     }

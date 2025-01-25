@@ -1,6 +1,8 @@
 import {fetchUsers} from './users-panel.js';
 import {fetchShops} from './shops-panel.js';
 import {openModal} from './reports-panel.js'
+import {fetchArticles} from "./article-panel.js";
+import {fetchMaterials} from "./material-panel.js";
 
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -24,6 +26,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('users-section').addEventListener('click', () => loadSection('admin'));
     document.getElementById('shops-section').addEventListener('click', () => loadSection('shops'));
     document.getElementById('reports-section').addEventListener('click', () => loadSection('user'));
+    document.getElementById('articles-section').addEventListener('click', () => loadSection('articles'));
+    document.getElementById('materials-section').addEventListener('click', () => loadSection('materials'));
 
     document.getElementById('logout-btn').addEventListener('click', () => {
         localStorage.removeItem('token');
@@ -40,6 +44,10 @@ async function loadSection(section) {
         openReportsMenu()
     } else if (section === 'shops') {
         await fetchShops();
+    } else if (section === 'articles') {
+        await fetchArticles();
+    } else if (section === 'materials') {
+        await fetchMaterials(true);
     }
 }
 
@@ -48,6 +56,8 @@ function showAdminMenu() {
     document.getElementById('users-section').style.display = 'block';
     document.getElementById('reports-section').style.display = 'block';
     document.getElementById('shops-section').style.display = 'block';
+    document.getElementById('articles-section').style.display = 'block';
+    document.getElementById('materials-section').style.display = 'block'
     openReportsMenu();
 
 }
@@ -56,6 +66,8 @@ function showAdminMenu() {
 function showUserMenu() {
     document.getElementById('users-section').style.display = 'none';  // Скрыть раздел "Пользователи"
     document.getElementById('shops-section').style.display = 'none'; // Скрыть раздел "Магазины"
+    document.getElementById('articles-section').style.display = 'none'; // Скрыть раздел артикулы
+    document.getElementById('materials-section').style.display = 'none'; // Скрыть раздел артикулы
     document.getElementById('reports-section').style.display = 'block'; // Показать только "Отчеты"
     openReportsMenu();
 }

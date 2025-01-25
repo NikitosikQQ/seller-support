@@ -9,6 +9,7 @@ import ru.seller_support.assignment.adapter.marketplace.ozon.dto.inner.Product;
 import ru.seller_support.assignment.adapter.postgres.entity.ShopEntity;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.ProductModel;
+import ru.seller_support.assignment.exception.ArticleMappingException;
 import ru.seller_support.assignment.util.CommonUtils;
 
 import java.math.BigDecimal;
@@ -41,47 +42,83 @@ public interface OzonAdapterMapper {
 
     @Named("color")
     default String getColor(String offerId) {
-        return offerId.split(ARTICLE_SEPARATOR)[1];
+        try {
+            return offerId.split(ARTICLE_SEPARATOR)[1];
+        } catch (Exception e) {
+            throw new ArticleMappingException(String.format("Не удалось сконвертировать артикул из озона %s: %s",
+                    offerId, e.getMessage()));
+        }
     }
 
     @Named("colorNumber")
     default Integer getColorNumber(String offerId) {
-        return Integer.parseInt(offerId.split(ARTICLE_SEPARATOR)[2]);
+        try {
+            return Integer.parseInt(offerId.split(ARTICLE_SEPARATOR)[2]);
+        } catch (Exception e) {
+            throw new ArticleMappingException(String.format("Не удалось сконвертировать артикул из озона %s: %s",
+                    offerId, e.getMessage()));
+        }
     }
 
     @Named("length")
     default Integer getLength(String offerId) {
-        return Integer.parseInt(offerId.split(ARTICLE_SEPARATOR)[3]);
+        try {
+            return Integer.parseInt(offerId.split(ARTICLE_SEPARATOR)[3]);
+        } catch (Exception e) {
+            throw new ArticleMappingException(String.format("Не удалось сконвертировать артикул из озона %s : %s",
+                    offerId,
+                    e.getMessage()));
+        }
     }
 
     @Named("width")
     default Integer getWidth(String offerId) {
-        return Integer.parseInt(offerId.split(ARTICLE_SEPARATOR)[4]);
+        try {
+            return Integer.parseInt(offerId.split(ARTICLE_SEPARATOR)[4]);
+        } catch (Exception e) {
+            throw new ArticleMappingException(String.format("Не удалось сконвертировать артикул из озона %s : %s",
+                    offerId,
+                    e.getMessage()));
+        }
     }
 
     @Named("promoName")
     default String getPromoName(String offerId) {
-        String promoName = offerId.split(ARTICLE_SEPARATOR)[6];
-        int firstSpaceIndex = promoName.indexOf(CommonUtils.SPACE);
-        if (firstSpaceIndex == -1) {
-            return promoName;
+        try {
+            String promoName = offerId.split(ARTICLE_SEPARATOR)[6];
+            int firstSpaceIndex = promoName.indexOf(CommonUtils.SPACE);
+            if (firstSpaceIndex == -1) {
+                return promoName;
+            }
+            return promoName.substring(0, firstSpaceIndex);
+        } catch (Exception e) {
+            throw new ArticleMappingException(String.format("Не удалось сконвертировать артикул из озона %s : %s",
+                    offerId,
+                    e.getMessage()));
         }
-        return promoName.substring(0, firstSpaceIndex);
+
     }
 
     @Named("comment")
     default String getComment(String offerId) {
-        String promoName = offerId.split(ARTICLE_SEPARATOR)[6];
-        int firstSpaceIndex = promoName.indexOf(CommonUtils.SPACE);
-        if (firstSpaceIndex == -1) {
-            return CommonUtils.EMPTY_STRING;
+        try {
+            String promoName = offerId.split(ARTICLE_SEPARATOR)[6];
+            int firstSpaceIndex = promoName.indexOf(CommonUtils.SPACE);
+            if (firstSpaceIndex == -1) {
+                return CommonUtils.EMPTY_STRING;
+            }
+            return promoName.substring(firstSpaceIndex + 1);
+        } catch (Exception e) {
+            throw new ArticleMappingException(String.format("Не удалось сконвертировать артикул из озона %s : %s",
+                    offerId,
+                    e.getMessage()));
         }
-        return promoName.substring(firstSpaceIndex + 1);
     }
 
     @Named("price")
     default BigDecimal getPrice(String price) {
         return new BigDecimal(price).setScale(2, RoundingMode.HALF_UP);
+
     }
 
     default BigDecimal getTotalPrice(Product product) {
@@ -98,6 +135,5 @@ public interface OzonAdapterMapper {
         }
         return toProductModel(posting.getProducts().getFirst());
     }
-
 
 }

@@ -7,13 +7,11 @@ import ru.seller_support.assignment.adapter.postgres.entity.ArticlePromoInfoEnti
 import ru.seller_support.assignment.adapter.postgres.entity.MaterialEntity;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.ProductModel;
+import ru.seller_support.assignment.domain.SummaryOfMaterialModel;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,6 +42,34 @@ public class PostingPreparationService {
                 .toList();
     }
 
+    public List<SummaryOfMaterialModel> calculateSummaryPerDay(List<PostingInfoModel> postings) {
+        List<SummaryOfMaterialModel> summary = new ArrayList<>();
+
+        Map<MaterialEntity, List<ArticlePromoInfoEntity>> mapOfMaterials = getMaterialArticlesMap();
+
+        for (Map.Entry<MaterialEntity, List<ArticlePromoInfoEntity>> entry : mapOfMaterials.entrySet()) {
+            MaterialEntity material = entry.getKey();
+            List<ArticlePromoInfoEntity> articles = entry.getValue();
+
+            List<PostingInfoModel> filteringPosting = getFilteringPostingsByArticle(postings, articles);
+            if (filteringPosting.isEmpty()) {
+                continue;
+            }
+            SummaryOfMaterialModel summaryOfMaterial = new SummaryOfMaterialModel();
+            BigDecimal totalPricePerDay = calculateTotalPricePerMaterial(filteringPosting);
+            BigDecimal totalArea = calculateTotalArea(filteringPosting);
+
+            summaryOfMaterial.setMaterialName(material.getName());
+            summaryOfMaterial.setTotalAreaInMeterPerDay(totalArea);
+            summaryOfMaterial.setTotalPricePerDay(totalPricePerDay);
+            summaryOfMaterial.setAveragePricePerSquareMeter(calculateAveragePricePerMeter(totalPricePerDay, totalArea));
+
+            summary.add(summaryOfMaterial);
+        }
+
+        return summary;
+    }
+
     private Integer getRealQuantity(ProductModel product, List<ArticlePromoInfoEntity> articlePromoInfos) {
         return articlePromoInfos.stream()
                 .filter(promo -> promo.getName().equalsIgnoreCase(product.getPromoName()))
@@ -71,5 +97,38 @@ public class PostingPreparationService {
         return articlePromoInfoService.findAll()
                 .stream()
                 .collect(Collectors.groupingBy(ArticlePromoInfoEntity::getMaterial, TreeMap::new, Collectors.toList()));
+    }
+
+    private BigDecimal calculateTotalArea(List<PostingInfoModel> materialPostings) {
+        return materialPostings.stream()
+                .map(PostingInfoModel::getProduct)
+                .map(ProductModel::getAreaInMeters)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal calculateTotalPricePerMaterial(List<PostingInfoModel> materialPostings) {
+        return materialPostings.stream()
+                .map(PostingInfoModel::getProduct)
+                .map(ProductModel::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal calculateAveragePricePerMeter(BigDecimal totalPricePerMaterial,
+                                                     BigDecimal totalAreaPerMaterial) {
+        return totalPricePerMaterial.divide(totalAreaPerMaterial, 2, RoundingMode.HALF_UP);
+    }
+
+    public List<PostingInfoModel> getFilteringPostingsByArticle(List<PostingInfoModel> postings,
+                                                                List<ArticlePromoInfoEntity> articlePromoInfos) {
+        Set<String> promoNames = extractPromoNames(articlePromoInfos);
+        return postings.stream()
+                .filter(post -> promoNames.contains(post.getProduct().getPromoName()))
+                .toList();
+    }
+
+    public Set<String> extractPromoNames(List<ArticlePromoInfoEntity> articles) {
+        return articles.stream()
+                .map(ArticlePromoInfoEntity::getName)
+                .collect(Collectors.toSet());
     }
 }

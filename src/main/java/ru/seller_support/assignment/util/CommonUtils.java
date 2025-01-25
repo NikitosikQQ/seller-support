@@ -29,6 +29,10 @@ public class CommonUtils {
         return DATE_TIME_FORMATTER.format(instant);
     }
 
+    public static String formatInstantToDateString(Instant instant) {
+        return DATE_FORMATTER.format(instant);
+    }
+
     public static String getFormattedStringWithInstant(String pattern, Instant instant) {
         String date = CommonUtils.DATE_FORMATTER.format(instant);
         return String.format(pattern, date);

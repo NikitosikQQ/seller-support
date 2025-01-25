@@ -38,6 +38,8 @@ public class OzonAdapter extends MarketplaceAdapter {
     public List<PostingInfoModel> getNewPosting(ShopEntity shop, Instant from, Instant to) {
         GetUnfulfilledListRequest request = buildGetPostingRequest(from, to);
         GetUnfulfilledListResponse response = ozonClient.getUnfulfilledOrders(shop.getApiKey(), shop.getClientId(), request);
+        log.info("Успешно получены отправления для {} в количестве {}",
+                shop.getName(), response.getResult().getPostings().size());
 
         return response.getResult().getPostings().stream()
                 .map(post -> mapper.toPostingInfoModel(post, shop))

@@ -3,17 +3,20 @@ package ru.seller_support.assignment.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import ru.seller_support.assignment.adapter.postgres.entity.ArticlePromoInfoEntity;
 import ru.seller_support.assignment.adapter.postgres.entity.MaterialEntity;
 import ru.seller_support.assignment.domain.PostingInfoModel;
+import ru.seller_support.assignment.domain.SummaryOfMaterialModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
 import ru.seller_support.assignment.domain.enums.SortingPostingByParam;
 import ru.seller_support.assignment.util.CommonUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -29,10 +32,13 @@ public class PostingExcelReportGenerator {
 
     private static final String LDSP_RASPIL_SHOP_TITLE_NAME = "ЛДСП-РАСПИЛ";
 
+    private static final int COLUMN_NUMBER_OF_SUMMARY_TABLE = 13;
+
     private static final int SKIP_ROWS_BETWEEN_SHOPS_COUNT = 3;
     private static final int START_ROW_INDEX = 2;
 
-    private static final Map<Integer, String> HEADERS_NAMING_MAP = Map.ofEntries(
+
+    private static final Map<Integer, String> HEADERS_MAIN_NAMING_MAP = Map.ofEntries(
             Map.entry(0, "Номер отправления"),
             Map.entry(1, "Номер паллета"),
             Map.entry(2, "Артикул"),
@@ -44,8 +50,7 @@ public class PostingExcelReportGenerator {
             Map.entry(8, "Принят в обработку"),
             Map.entry(9, "Сумма отправления"),
             Map.entry(10, "Сумма за метр кв"),
-            Map.entry(11, "Цвет"),
-            Map.entry(12, "Комментарий")
+            Map.entry(11, "Комментарий")
     );
 
     private static final Map<Integer, Function<PostingInfoModel, Object>> VALUES_CELLS_MAP = Map.ofEntries(
@@ -60,15 +65,18 @@ public class PostingExcelReportGenerator {
             Map.entry(8, post -> CommonUtils.formatInstant(post.getInProcessAt())),
             Map.entry(9, post -> post.getProduct().getTotalPrice()),
             Map.entry(10, post -> post.getProduct().getPricePerSquareMeter()),
-            Map.entry(11, post -> post.getProduct().getColor()),
-            Map.entry(12, post -> post.getProduct().getComment())
+            Map.entry(11, post -> post.getProduct().getComment())
     );
+
+    private final PostingPreparationService preparationService;
 
     public byte[] createNewPostingFile(List<PostingInfoModel> postings,
                                        Map<MaterialEntity, List<ArticlePromoInfoEntity>> materialArticlesMap) {
         if (Objects.isNull(postings) || postings.isEmpty()) {
             return null;
         }
+        List<SummaryOfMaterialModel> summaryOfMaterials = preparationService.calculateSummaryPerDay(postings);
+
         List<PostingInfoModel> mutablePostings = new ArrayList<>(postings);
         int nextRowIndex;
         try (Workbook wb = initialWorkBook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
@@ -78,6 +86,7 @@ public class PostingExcelReportGenerator {
                 nextRowIndex = fillSheetByMaterial(wb, mutablePostings, nextRowIndex, material, articles);
             }
             fillSheetRemaining(wb, mutablePostings, nextRowIndex);
+            fillSheetBySummary(wb, summaryOfMaterials);
             setColumnWidths(wb.getSheet(SHEET_NAME));
             wb.write(outputStream);
             log.info("Успешно подготовлен excel-файл для отчета отправлений");
@@ -85,6 +94,46 @@ public class PostingExcelReportGenerator {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void fillSheetBySummary(Workbook wb, List<SummaryOfMaterialModel> summaryOfMaterials) {
+        Sheet sheet = wb.getSheet(SHEET_NAME);
+        int headerIndexRow = 1;
+        Row row = sheet.getRow(headerIndexRow);
+        fillHeaderSummary(wb, row, CommonUtils.formatInstantToDateString(Instant.now()), COLUMN_NUMBER_OF_SUMMARY_TABLE);
+        row = sheet.getRow(++headerIndexRow);
+        fillHeaderSummary(wb, row, "Материал", COLUMN_NUMBER_OF_SUMMARY_TABLE);
+        fillHeaderSummary(wb, row, "М2", COLUMN_NUMBER_OF_SUMMARY_TABLE + 1);
+        fillHeaderSummary(wb, row, "Общая сумма продаж", COLUMN_NUMBER_OF_SUMMARY_TABLE + 2);
+        fillHeaderSummary(wb, row, "Средняя цена за М2", COLUMN_NUMBER_OF_SUMMARY_TABLE + 3);
+
+        int payloadInderRow = 3;
+        for (SummaryOfMaterialModel summary : summaryOfMaterials) {
+            int columnNumber = COLUMN_NUMBER_OF_SUMMARY_TABLE;
+            row = sheet.getRow(payloadInderRow);
+            Cell cell = row.createCell(columnNumber);
+            cell.setCellValue(summary.getMaterialName());
+            cell.setCellStyle(getBorderedStyle(wb));
+            sheet.setColumnWidth(columnNumber, 7000);
+
+            Cell cellOfM2 = row.createCell(++columnNumber);
+            cellOfM2.setCellValue(summary.getTotalAreaInMeterPerDay().doubleValue());
+            cellOfM2.setCellStyle(getBorderedStyle(wb));
+            sheet.setColumnWidth(columnNumber, 7000);
+
+            Cell cellOfTotalPricePerMaterial = row.createCell(++columnNumber);
+            cellOfTotalPricePerMaterial.setCellValue(summary.getTotalPricePerDay().doubleValue());
+            cellOfTotalPricePerMaterial.setCellStyle(getBorderedStyle(wb));
+            sheet.setColumnWidth(columnNumber, 7000);
+
+            Cell cellOfAveragePricePerMaterial = row.createCell(++columnNumber);
+            cellOfAveragePricePerMaterial.setCellValue(summary.getAveragePricePerSquareMeter().doubleValue());
+            cellOfAveragePricePerMaterial.setCellStyle(getBorderedStyle(wb));
+            sheet.setColumnWidth(columnNumber, 7000);
+
+            payloadInderRow++;
+        }
+
     }
 
     private Workbook initialWorkBook() {
@@ -97,8 +146,8 @@ public class PostingExcelReportGenerator {
 
     private void createHeaderRow(Sheet sheet) {
         Row row = sheet.createRow(0);
-        for (int i = 0; i < HEADERS_NAMING_MAP.size(); i++) {
-            row.createCell(i).setCellValue(HEADERS_NAMING_MAP.get(i));
+        for (int i = 0; i < HEADERS_MAIN_NAMING_MAP.size(); i++) {
+            row.createCell(i).setCellValue(HEADERS_MAIN_NAMING_MAP.get(i));
         }
     }
 
@@ -135,8 +184,8 @@ public class PostingExcelReportGenerator {
         Sheet sheet = wb.getSheet(SHEET_NAME);
         int rowIndex = nextRowIndex;
 
-        Set<String> promoNames = extractPromoNames(articles);
-        List<PostingInfoModel> filteredPostings = filterPostingsByPromoNames(postings, promoNames);
+        Set<String> promoNames = preparationService.extractPromoNames(articles);
+        List<PostingInfoModel> filteredPostings = preparationService.getFilteringPostingsByArticle(postings, articles);
 
         if (filteredPostings.isEmpty()) {
             return rowIndex;
@@ -161,18 +210,6 @@ public class PostingExcelReportGenerator {
         return postings.stream()
                 .filter(post -> post.getShopName().equalsIgnoreCase(shopName))
                 .collect(Collectors.toList());
-    }
-
-    private List<PostingInfoModel> filterPostingsByPromoNames(List<PostingInfoModel> postings, Set<String> promoNames) {
-        return postings.stream()
-                .filter(post -> promoNames.contains(post.getProduct().getPromoName()))
-                .toList();
-    }
-
-    private Set<String> extractPromoNames(List<ArticlePromoInfoEntity> articles) {
-        return articles.stream()
-                .map(ArticlePromoInfoEntity::getName)
-                .collect(Collectors.toSet());
     }
 
     private int fillRowsBySortingStrategy(Sheet sheet,
@@ -234,24 +271,25 @@ public class PostingExcelReportGenerator {
     private void createRowTitle(Workbook wb, int titleIndexRow, String rowText) {
         Sheet sheet = wb.getSheet(SHEET_NAME);
 
+        Row row = sheet.createRow(titleIndexRow);
+        row.setHeightInPoints(25);
+
+        Cell cell = row.createCell(2);
+        cell.setCellValue(rowText);
+        cell.setCellStyle(getTitleStyle(wb));
+    }
+
+    private CellStyle getTitleStyle(Workbook wb) {
         Font font = wb.createFont();
         font.setBold(true);
         font.setFontHeightInPoints((short) 24);
-
 
         CellStyle style = wb.createCellStyle();
         style.setFont(font);
         style.setAlignment(HorizontalAlignment.CENTER);
         style.setVerticalAlignment(VerticalAlignment.CENTER);
         style.setWrapText(true);
-
-        Row row = sheet.createRow(titleIndexRow);
-        row.setHeightInPoints(25);
-
-
-        Cell cell = row.createCell(0);
-        cell.setCellValue(rowText);
-        cell.setCellStyle(style);
+        return style;
     }
 
     private void fillRow(Row row, PostingInfoModel posting) {
@@ -267,7 +305,7 @@ public class PostingExcelReportGenerator {
     }
 
     private void setColumnWidths(Sheet sheet) {
-        for (int i = 1; i < HEADERS_NAMING_MAP.size(); i++) {
+        for (int i = 1; i < HEADERS_MAIN_NAMING_MAP.size(); i++) {
             sheet.autoSizeColumn(i);
         }
     }
@@ -277,5 +315,26 @@ public class PostingExcelReportGenerator {
             sheet.createRow(++rowIndex);
         }
         return rowIndex;
+    }
+
+    private void fillHeaderSummary(Workbook wb, Row row, String value, int index) {
+        Cell cell = row.createCell(index);
+        if (row.getRowNum() == 1) {
+            Sheet sheet = wb.getSheet(SHEET_NAME);
+            sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), 13, 16));
+        }
+        cell.setCellValue(value);
+
+        CellStyle style =  row.getRowNum() == 1 ? getTitleStyle(wb) : getBorderedStyle(wb);
+        cell.setCellStyle(style);
+    }
+
+    private CellStyle getBorderedStyle(Workbook wb) {
+        CellStyle borderedStyle = wb.createCellStyle();
+        borderedStyle.setBorderTop(BorderStyle.THIN);
+        borderedStyle.setBorderBottom(BorderStyle.THIN);
+        borderedStyle.setBorderLeft(BorderStyle.THIN);
+        borderedStyle.setBorderRight(BorderStyle.THIN);
+        return borderedStyle;
     }
 }
