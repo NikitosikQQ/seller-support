@@ -111,6 +111,9 @@ public class PostingExcelReportGenerator {
         for (SummaryOfMaterialModel summary : summaryOfMaterials) {
             int columnNumber = COLUMN_NUMBER_OF_SUMMARY_TABLE;
             row = sheet.getRow(payloadInderRow);
+            if (Objects.isNull(row)) {
+                row = sheet.createRow(payloadInderRow);
+            }
             Cell cell = row.createCell(columnNumber);
             cell.setCellValue(summary.getMaterialName());
             cell.setCellStyle(getBorderedStyle(wb));
@@ -325,7 +328,7 @@ public class PostingExcelReportGenerator {
         }
         cell.setCellValue(value);
 
-        CellStyle style =  row.getRowNum() == 1 ? getTitleStyle(wb) : getBorderedStyle(wb);
+        CellStyle style = row.getRowNum() == 1 ? getTitleStyle(wb) : getBorderedStyle(wb);
         cell.setCellStyle(style);
     }
 

@@ -12,13 +12,15 @@ export async function fetchMaterials(needTable) {
     if (!response.ok) {
         const data = response.json
         alert('Ошибка: ' + data.message);
-    } else {
-        const materials = await response.json();
-        if (needTable) {
-            renderMaterialTable(materials)
-        }
+        return null;
     }
-    return await response.json();
+    const materials = await response.json();
+    if (needTable) {
+        renderMaterialTable(materials)
+
+    }
+
+    return materials;
 }
 
 export async function fetchSortingPostingBy() {
