@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Проверка роли и отображение соответствующих разделов
     if (roles.includes('ROLE_ADMIN')) {
         showAdminMenu();
+    } else if (roles.includes('ROLE_MANAGER')) {
+        showManagerMenu();
     } else if (roles.includes('ROLE_USER')) {
         showUserMenu();
     } else {
@@ -71,6 +73,17 @@ function showUserMenu() {
     document.getElementById('reports-section').style.display = 'block'; // Показать только "Отчеты"
     openReportsMenu();
 }
+
+// Функция для отображения меню для менеджера
+function showManagerMenu() {
+    document.getElementById('users-section').style.display = 'none';
+    document.getElementById('shops-section').style.display = 'block';
+    document.getElementById('articles-section').style.display = 'block';
+    document.getElementById('materials-section').style.display = 'block';
+    document.getElementById('reports-section').style.display = 'block';
+    openReportsMenu();
+}
+
 
 function openReportsMenu() {
     const container = document.getElementById('main-container');

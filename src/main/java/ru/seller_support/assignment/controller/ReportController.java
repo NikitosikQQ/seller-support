@@ -18,7 +18,6 @@ import java.time.Instant;
 @RestController
 @RequestMapping("/api/v1/reports")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('USER')")
 @Slf4j
 public class ReportController {
 

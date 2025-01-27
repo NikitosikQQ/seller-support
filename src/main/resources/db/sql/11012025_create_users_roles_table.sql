@@ -10,3 +10,7 @@ CREATE TABLE IF NOT EXISTS users_roles (
 );
 
 COMMENT ON TABLE users_roles IS 'Связь пользователей с их ролями';
+
+INSERT INTO users_roles (user_id, role_id)
+    VALUES
+        ('a7b06927-c49a-4493-bab1-d6712f275bd6', '66472f2f-66c9-4dac-8d49-2a392ff0e10b');
