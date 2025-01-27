@@ -1,0 +1,33 @@
+services:
+  database:
+    image: postgres:15
+    container_name: seller-support-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: seller-support-app
+    ports:
+      - "8081:8080"
+    depends_on:
+      - database
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      APP_SECURITY_SECRET: 620b2a375d2fddb70e26371777add3645c459d054fd68016ef761ce8931bceee
+      APP_SECURITY_LIFETIME: PT120M
+      APP_SECURITY_SALT: ce66e847ab14d3d8
+      APP_INTEGRATIONS_MARKETPLACES_OZON_ROOT_URL: https://api-seller.ozon.ru
+    volumes:
+      postgres_data:

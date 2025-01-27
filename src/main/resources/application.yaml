@@ -2,9 +2,9 @@ spring:
   application:
     name: assignment
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
-    password: postgres
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
   liquibase:
     enabled: true
@@ -16,10 +16,10 @@ spring:
 
 app:
   security:
-    secret: 620b2a375d2fddb70e26371777add3645c459d054fd68016ef761ce8931bceee
-    lifetime: PT120M
-    salt: ce66e847ab14d3d8
+    secret: ${APP_SECURITY_SECRET}
+    lifetime: ${APP_SECURITY_LIFETIME}
+    salt: ${APP_SECURITY_SALT}
   integrations:
     marketplaces:
       ozon:
-        rootUrl: https://api-seller.ozon.ru
+        rootUrl: ${APP_INTEGRATIONS_MARKETPLACES_OZON_ROOT_URL}
