@@ -17,7 +17,7 @@ services:
       dockerfile: Dockerfile
     container_name: seller-support-app
     ports:
-      - "8081:8080"
+      - "8080:8080"
     depends_on:
       - database
     environment:
@@ -29,5 +29,6 @@ services:
       APP_SECURITY_LIFETIME: PT120M
       APP_SECURITY_SALT: ce66e847ab14d3d8
       APP_INTEGRATIONS_MARKETPLACES_OZON_ROOT_URL: https://api-seller.ozon.ru
-    volumes:
-      postgres_data:
+
+volumes:
+  postgres_data:
