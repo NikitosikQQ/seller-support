@@ -42,6 +42,9 @@ public class MarketplaceProcessor {
 
         List<ShopEntity> shops = shopService.findAll();
 
+        if (Objects.isNull(shops) || shops.isEmpty()) {
+            throw new IllegalArgumentException("Не найдено ни одного магазина, пожалуйста, добавьте магазин");
+        }
         ExecutorService executor = Executors.newFixedThreadPool(shops.size());
 
         List<PostingInfoModel> postings = getPostingInfoModelByShopAsync(shops, fromDate, toDate, executor);
@@ -54,7 +57,7 @@ public class MarketplaceProcessor {
 
         postingPreparationService.preparePostingResult(postings);
 
-        Map<MaterialEntity,List<ArticlePromoInfoEntity>> articles = postingPreparationService.getMaterialArticlesMap();
+        Map<MaterialEntity, List<ArticlePromoInfoEntity>> articles = postingPreparationService.getMaterialArticlesMap();
 
         byte[] excelBytes = postingExcelReportGenerator.createNewPostingFile(postings, articles);
         String excelName = CommonUtils.getFormattedStringWithInstant(EXCEL_NAME_PATTERN, now);
@@ -141,7 +144,6 @@ public class MarketplaceProcessor {
                 .findFirst().orElseThrow(() -> new IllegalArgumentException(
                         String.format("Нет обработчика маркетплейса %s", marketplace)));
     }
-
 
 
 }

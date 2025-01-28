@@ -1,34 +1,52 @@
+networks:
+  main:
+
 services:
+  nginx:
+    image: nginx:stable-alpine
+    container_name: seller-support-nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - database
+      - app
+    volumes:
+      - './nginx.conf:/etc/nginx/nginx.conf'
+    networks:
+      - main
+
+
   database:
     image: postgres:15
     container_name: seller-support-db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=postgres
     ports:
       - "5432:5432"
+    networks:
+      - main
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgres/data
 
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: seller-support-app
-    ports:
-      - "8080:8080"
     depends_on:
       - database
+    networks:
+      - main
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/postgres
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      APP_SECURITY_SECRET: 620b2a375d2fddb70e26371777add3645c459d054fd68016ef761ce8931bceee
-      APP_SECURITY_LIFETIME: PT120M
-      APP_SECURITY_SALT: ce66e847ab14d3d8
-      APP_INTEGRATIONS_MARKETPLACES_OZON_ROOT_URL: https://api-seller.ozon.ru
+     - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/postgres
+     - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-postgres}
+     - SPRING_DATASOURCE_PASSWORD=${POSTGRES_USER:-postgres}
+     - APP_SECURITY_SECRET=${APP_SECURITY_SECRET:-620b2a375d2fddb70e26371777add3645c459d054fd68016ef761ce8931bceee}
+     - APP_SECURITY_LIFETIME=${APP_SECURITY_LIFETIME:-PT120M}
+     - APP_SECURITY_SALT=${APP_SECURITY_SALT:-ce66e847ab14d3d8}
+     - APP_INTEGRATIONS_MARKETPLACES_OZON_ROOT_URL=https://api-seller.ozon.ru
 
 volumes:
   postgres_data:
