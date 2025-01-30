@@ -7,6 +7,7 @@ import ru.seller_support.assignment.adapter.marketplace.MarketplaceAdapter;
 import ru.seller_support.assignment.adapter.marketplace.ozon.client.OzonClient;
 import ru.seller_support.assignment.adapter.marketplace.ozon.common.OzonСonstants;
 import ru.seller_support.assignment.adapter.marketplace.ozon.dto.inner.FilterBody;
+import ru.seller_support.assignment.adapter.marketplace.ozon.dto.inner.Posting;
 import ru.seller_support.assignment.adapter.marketplace.ozon.dto.request.GetPackagesRequest;
 import ru.seller_support.assignment.adapter.marketplace.ozon.dto.request.GetUnfulfilledListRequest;
 import ru.seller_support.assignment.adapter.marketplace.ozon.dto.response.GetUnfulfilledListResponse;
@@ -36,12 +37,27 @@ public class OzonAdapter extends MarketplaceAdapter {
 
     @Override
     public List<PostingInfoModel> getNewPosting(ShopEntity shop, Instant from, Instant to) {
-        GetUnfulfilledListRequest request = buildGetPostingRequest(from, to);
-        GetUnfulfilledListResponse response = ozonClient.getUnfulfilledOrders(shop.getApiKey(), shop.getClientId(), request);
-        log.info("Успешно получены отправления для {} в количестве {}",
-                shop.getName(), response.getResult().getPostings().size());
+        List<GetUnfulfilledListResponse> responses = new ArrayList<>();
+        GetUnfulfilledListRequest requestAwaitingDeliver = buildGetPostingRequest(from, to, OzonСonstants.OzonStatus.AWAITING_DELIVER);
+        GetUnfulfilledListRequest requestAcceptanceInProgress = buildGetPostingRequest(from, to, OzonСonstants.OzonStatus.ACCEPTANCE_IN_PROGRESS);
 
-        return response.getResult().getPostings().stream()
+        GetUnfulfilledListResponse responseAwaitingDeliver = ozonClient.getUnfulfilledOrders(
+                shop.getApiKey(), shop.getClientId(), requestAwaitingDeliver);
+        responses.add(responseAwaitingDeliver);
+
+        GetUnfulfilledListResponse responseAcceptanceInProgress = ozonClient.getUnfulfilledOrders(
+                shop.getApiKey(), shop.getClientId(), requestAcceptanceInProgress);
+        responses.add(responseAcceptanceInProgress);
+
+        List<Posting> postingResponse = responses.stream()
+                .map(response -> response.getResult().getPostings())
+                .flatMap(List::stream)
+                .toList();
+
+        log.info("Успешно получены отправления для {} в количестве {}",
+                shop.getName(), postingResponse.size());
+
+        return postingResponse.stream()
                 .map(post -> mapper.toPostingInfoModel(post, shop))
                 .toList();
     }
@@ -67,13 +83,13 @@ public class OzonAdapter extends MarketplaceAdapter {
         return packages;
     }
 
-    private GetUnfulfilledListRequest buildGetPostingRequest(Instant from, Instant to) {
+    private GetUnfulfilledListRequest buildGetPostingRequest(Instant from, Instant to, String ozonStatus) {
         return GetUnfulfilledListRequest.builder()
                 .dir(OzonСonstants.ASC_SORT)
                 .filter(FilterBody.builder()
                         .cutoffFrom(from)
                         .cutoffTo(to)
-                        .status(OzonСonstants.OzonStatus.AWAITING_DELIVER)
+                        .status(ozonStatus)
                         .build())
                 .limit(OzonСonstants.MAX_LIMIT)
                 .build();

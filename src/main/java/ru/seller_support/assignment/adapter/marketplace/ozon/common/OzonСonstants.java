@@ -12,6 +12,7 @@ public class OzonСonstants {
     @UtilityClass
     public static class OzonStatus {
         public static String AWAITING_DELIVER = "awaiting_deliver";
+        public static String ACCEPTANCE_IN_PROGRESS = "acceptance_in_progress";
     }
 
 }
