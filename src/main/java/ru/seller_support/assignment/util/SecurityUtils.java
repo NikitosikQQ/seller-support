@@ -2,8 +2,12 @@ package ru.seller_support.assignment.util;
 
 import lombok.experimental.UtilityClass;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @UtilityClass
 public class SecurityUtils {
@@ -21,8 +25,12 @@ public class SecurityUtils {
         return (UserDetails) authentication.getPrincipal();
     }
 
-    public static String getLogin() {
+    public static Set<String> getRoles() {
         Authentication authentication = getAuthentication();
-        return ((UserDetails) authentication.getPrincipal()).getUsername();
+        return ((UserDetails) authentication.getPrincipal()).getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .map(role -> role.replaceFirst("^ROLE_", ""))
+                .collect(Collectors.toSet());
     }
 }

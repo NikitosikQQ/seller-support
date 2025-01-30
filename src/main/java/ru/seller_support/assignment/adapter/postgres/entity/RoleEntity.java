@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -21,5 +22,7 @@ public class RoleEntity {
 
     @Column(nullable = false, unique = true)
     private String name;
+
+    public static final Set<String> ROLES_FOR_FULL_REPORTS = Set.of("ADMIN", "MANAGER");
 
 }

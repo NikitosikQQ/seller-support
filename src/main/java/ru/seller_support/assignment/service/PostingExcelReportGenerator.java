@@ -8,11 +8,13 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import ru.seller_support.assignment.adapter.postgres.entity.ArticlePromoInfoEntity;
 import ru.seller_support.assignment.adapter.postgres.entity.MaterialEntity;
+import ru.seller_support.assignment.adapter.postgres.entity.RoleEntity;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.SummaryOfMaterialModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
 import ru.seller_support.assignment.domain.enums.SortingPostingByParam;
 import ru.seller_support.assignment.util.CommonUtils;
+import ru.seller_support.assignment.util.SecurityUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -38,7 +40,9 @@ public class PostingExcelReportGenerator {
     private static final int START_ROW_INDEX = 2;
 
 
-    private static final Map<Integer, String> HEADERS_MAIN_NAMING_MAP = Map.ofEntries(
+    private static final Set<Integer> SHORT_KEYS = Set.of(0, 1, 2, 3, 4, 5, 6, 7);
+
+    private static final Map<Integer, String> HEADERS_MAIN_FULL_NAMING_MAP = Map.ofEntries(
             Map.entry(0, "Номер отправления"),
             Map.entry(1, "Номер паллета"),
             Map.entry(2, "Артикул"),
@@ -46,11 +50,11 @@ public class PostingExcelReportGenerator {
             Map.entry(4, "Ширина"),
             Map.entry(5, "Количество"),
             Map.entry(6, "Маркетплейс"),
-            Map.entry(7, "Метраж"),
+            Map.entry(7, "Комментарий"),
             Map.entry(8, "Принят в обработку"),
             Map.entry(9, "Сумма отправления"),
-            Map.entry(10, "Сумма за метр кв"),
-            Map.entry(11, "Комментарий")
+            Map.entry(10, "Метраж"),
+            Map.entry(11, "Сумма за метр кв")
     );
 
     private static final Map<Integer, Function<PostingInfoModel, Object>> VALUES_CELLS_MAP = Map.ofEntries(
@@ -61,11 +65,11 @@ public class PostingExcelReportGenerator {
             Map.entry(4, post -> post.getProduct().getWidth()),
             Map.entry(5, post -> post.getProduct().getQuantity()),
             Map.entry(6, PostingInfoModel::getMarketplace),
-            Map.entry(7, post -> post.getProduct().getAreaInMeters()),
+            Map.entry(7, post -> post.getProduct().getComment()),
             Map.entry(8, post -> CommonUtils.formatInstant(post.getInProcessAt())),
             Map.entry(9, post -> post.getProduct().getTotalPrice()),
-            Map.entry(10, post -> post.getProduct().getPricePerSquareMeter()),
-            Map.entry(11, post -> post.getProduct().getComment())
+            Map.entry(10, post -> post.getProduct().getAreaInMeters()),
+            Map.entry(11, post -> post.getProduct().getPricePerSquareMeter())
     );
 
     private final PostingPreparationService preparationService;
@@ -75,18 +79,24 @@ public class PostingExcelReportGenerator {
         if (Objects.isNull(postings) || postings.isEmpty()) {
             return null;
         }
-        List<SummaryOfMaterialModel> summaryOfMaterials = preparationService.calculateSummaryPerDay(postings);
-
         List<PostingInfoModel> mutablePostings = new ArrayList<>(postings);
+
+        boolean isNotFullReport = checkUserRolesForFullReport();
+
+        List<SummaryOfMaterialModel> summaryOfMaterials = new ArrayList<>();
+        if (!isNotFullReport) {
+            summaryOfMaterials = preparationService.calculateSummaryPerDay(postings);
+        }
+
         int nextRowIndex;
-        try (Workbook wb = initialWorkBook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            nextRowIndex = fillSheetLDCPRaspil(wb, mutablePostings);
+        try (Workbook wb = initialWorkBook(isNotFullReport); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            nextRowIndex = fillSheetLDCPRaspil(wb, mutablePostings, isNotFullReport);
             for (MaterialEntity material : materialArticlesMap.keySet()) {
                 List<ArticlePromoInfoEntity> articles = materialArticlesMap.get(material);
-                nextRowIndex = fillSheetByMaterial(wb, mutablePostings, nextRowIndex, material, articles);
+                nextRowIndex = fillSheetByMaterial(wb, mutablePostings, nextRowIndex, material, articles, isNotFullReport);
             }
-            fillSheetRemaining(wb, mutablePostings, nextRowIndex);
-            fillSheetBySummary(wb, summaryOfMaterials);
+            fillSheetRemaining(wb, mutablePostings, nextRowIndex, isNotFullReport);
+            fillSheetBySummary(wb, summaryOfMaterials, isNotFullReport);
             setColumnWidths(wb.getSheet(SHEET_NAME));
             wb.write(outputStream);
             log.info("Успешно подготовлен excel-файл для отчета отправлений");
@@ -96,7 +106,10 @@ public class PostingExcelReportGenerator {
         }
     }
 
-    public void fillSheetBySummary(Workbook wb, List<SummaryOfMaterialModel> summaryOfMaterials) {
+    public void fillSheetBySummary(Workbook wb, List<SummaryOfMaterialModel> summaryOfMaterials, boolean isNotFullReport) {
+        if (isNotFullReport) {
+            return;
+        }
         Sheet sheet = wb.getSheet(SHEET_NAME);
         int headerIndexRow = 1;
         Row row = sheet.getRow(headerIndexRow);
@@ -139,22 +152,21 @@ public class PostingExcelReportGenerator {
 
     }
 
-    private Workbook initialWorkBook() {
+    private Workbook initialWorkBook(boolean isNotFullReport) {
         Workbook wb = new XSSFWorkbook();
         Sheet sheet = wb.createSheet(SHEET_NAME);
         sheet.setColumnWidth(0, 10000);
-        createHeaderRow(sheet);
+        createHeaderRow(sheet, isNotFullReport);
         return wb;
     }
 
-    private void createHeaderRow(Sheet sheet) {
+    private void createHeaderRow(Sheet sheet, boolean isNotFullReport) {
         Row row = sheet.createRow(0);
-        for (int i = 0; i < HEADERS_MAIN_NAMING_MAP.size(); i++) {
-            row.createCell(i).setCellValue(HEADERS_MAIN_NAMING_MAP.get(i));
-        }
+        var headersMap = getHeaders(isNotFullReport);
+        headersMap.forEach((i, header) -> row.createCell(i).setCellValue(header));
     }
 
-    private int fillSheetLDCPRaspil(Workbook wb, List<PostingInfoModel> postings) {
+    private int fillSheetLDCPRaspil(Workbook wb, List<PostingInfoModel> postings, boolean isNotFullReport) {
         createRowTitle(wb, 1, LDSP_RASPIL_SHOP_TITLE_NAME);
         Sheet sheet = wb.getSheet(SHEET_NAME);
         int rowIndex = START_ROW_INDEX;
@@ -164,7 +176,7 @@ public class PostingExcelReportGenerator {
             return rowIndex;
         }
 
-        rowIndex = fillRowsBySortingStrategy(sheet, LDSPRaspilPostings, rowIndex, SortingPostingByParam.COLOR_NUMBER);
+        rowIndex = fillRowsBySortingStrategy(sheet, LDSPRaspilPostings, rowIndex, SortingPostingByParam.COLOR_NUMBER, isNotFullReport);
 
         rowIndex = addEmptyRows(sheet, rowIndex);
 
@@ -176,7 +188,8 @@ public class PostingExcelReportGenerator {
     private int fillSheetByMaterial(Workbook wb, List<PostingInfoModel> postings,
                                     int nextRowIndex,
                                     MaterialEntity material,
-                                    List<ArticlePromoInfoEntity> articles) {
+                                    List<ArticlePromoInfoEntity> articles,
+                                    boolean isNotFullReport) {
         if (material.isNotSeparate()) {
             return nextRowIndex;
         }
@@ -194,7 +207,7 @@ public class PostingExcelReportGenerator {
             return rowIndex;
         }
 
-        rowIndex = fillRowsBySortingStrategy(sheet, filteredPostings, rowIndex, material.getSortingPostingBy());
+        rowIndex = fillRowsBySortingStrategy(sheet, filteredPostings, rowIndex, material.getSortingPostingBy(), isNotFullReport);
 
         rowIndex = addEmptyRows(sheet, rowIndex);
 
@@ -203,10 +216,10 @@ public class PostingExcelReportGenerator {
         return rowIndex;
     }
 
-    private void fillSheetRemaining(Workbook wb, List<PostingInfoModel> postings, int nextRowIndex) {
+    private void fillSheetRemaining(Workbook wb, List<PostingInfoModel> postings, int nextRowIndex, boolean isNotFullReport) {
         Sheet sheet = wb.getSheet(SHEET_NAME);
         createRowTitle(wb, nextRowIndex - 1, Marketplace.OZON.name());
-        fillRowsBySortingStrategy(sheet, postings, nextRowIndex, SortingPostingByParam.COLOR_NUMBER);
+        fillRowsBySortingStrategy(sheet, postings, nextRowIndex, SortingPostingByParam.COLOR_NUMBER, isNotFullReport);
     }
 
     private List<PostingInfoModel> filterPostingsByShop(List<PostingInfoModel> postings, String shopName) {
@@ -218,10 +231,11 @@ public class PostingExcelReportGenerator {
     private int fillRowsBySortingStrategy(Sheet sheet,
                                           List<PostingInfoModel> postings,
                                           int rowIndex,
-                                          SortingPostingByParam sortingParam) {
+                                          SortingPostingByParam sortingParam,
+                                          boolean isNotFullReport) {
         Comparator<PostingInfoModel> comparator = getComparatorBySortingParam(sortingParam);
 
-        return fillRowsBySorting(sheet, postings, rowIndex, comparator, post -> {
+        return fillRowsBySorting(sheet, postings, rowIndex, comparator, isNotFullReport, post -> {
             if (SortingPostingByParam.COLOR_NAME.equals(sortingParam)) {
                 return post.getProduct().getColor();
             } else if (SortingPostingByParam.PROMO_NAME.equals(sortingParam)) {
@@ -246,6 +260,7 @@ public class PostingExcelReportGenerator {
                                   List<PostingInfoModel> postings,
                                   int rowIndex,
                                   Comparator<PostingInfoModel> comparator,
+                                  boolean isNotFullReport,
                                   Function<PostingInfoModel, Object> groupingFunction) {
         List<PostingInfoModel> sortedPostings = postings.stream()
                 .sorted(comparator)
@@ -262,7 +277,7 @@ public class PostingExcelReportGenerator {
             }
 
             Row row = sheet.createRow(rowIndex);
-            fillRow(row, posting);
+            fillRow(row, posting, isNotFullReport);
             previousGroupValue = currentGroupValue;
 
             rowIndex++;
@@ -295,20 +310,21 @@ public class PostingExcelReportGenerator {
         return style;
     }
 
-    private void fillRow(Row row, PostingInfoModel posting) {
-        for (int j = 0; j < VALUES_CELLS_MAP.size(); j++) {
-            Object value = VALUES_CELLS_MAP.get(j).apply(posting);
+    private void fillRow(Row row, PostingInfoModel posting, boolean isNotFullReport) {
+        var valuesMap = getValuesCellsMap(isNotFullReport);
+        valuesMap.forEach((j, function) -> {
+            Object value = function.apply(posting);
             switch (value) {
                 case Number number -> row.createCell(j).setCellValue(number.doubleValue());
                 case String str -> row.createCell(j).setCellValue(str);
                 case Marketplace marketplace -> row.createCell(j).setCellValue(marketplace.toString());
                 default -> row.createCell(j).setCellValue("");
             }
-        }
+        });
     }
 
     private void setColumnWidths(Sheet sheet) {
-        for (int i = 1; i < HEADERS_MAIN_NAMING_MAP.size(); i++) {
+        for (int i = 1; i < HEADERS_MAIN_FULL_NAMING_MAP.size(); i++) {
             sheet.autoSizeColumn(i);
         }
     }
@@ -339,5 +355,29 @@ public class PostingExcelReportGenerator {
         borderedStyle.setBorderLeft(BorderStyle.THIN);
         borderedStyle.setBorderRight(BorderStyle.THIN);
         return borderedStyle;
+    }
+
+    private Map<Integer, String> getHeaders(boolean isNotFull) {
+        if (isNotFull) {
+            return HEADERS_MAIN_FULL_NAMING_MAP.entrySet().stream()
+                    .filter(entry -> SHORT_KEYS.contains(entry.getKey()))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
+        return HEADERS_MAIN_FULL_NAMING_MAP;
+    }
+
+    private Map<Integer, Function<PostingInfoModel, Object>> getValuesCellsMap(boolean isNotFull) {
+        if (isNotFull) {
+            return VALUES_CELLS_MAP.entrySet().stream()
+                    .filter(entry -> SHORT_KEYS.contains(entry.getKey()))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
+        return VALUES_CELLS_MAP;
+    }
+
+
+    private boolean checkUserRolesForFullReport() {
+        Set<String> roles = SecurityUtils.getRoles();
+        return roles.stream().noneMatch(RoleEntity.ROLES_FOR_FULL_REPORTS::contains);
     }
 }
