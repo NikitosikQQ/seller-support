@@ -33,12 +33,12 @@ public class PostingExcelReportGenerator {
     private static final String LDSP_RASPIL_SHOP_NAME = "LDSPRaspil";
 
     private static final String LDSP_RASPIL_SHOP_TITLE_NAME = "ЛДСП-РАСПИЛ";
+    private static final String OTHER_MATERIALS_TITLE = "Остальное";
+    private static final String POSTINGS_WITH_WRONG_ARTICLE_TITLE = "Некорректные артикулы";
 
     private static final int COLUMN_NUMBER_OF_SUMMARY_TABLE = 13;
 
     private static final int SKIP_ROWS_BETWEEN_SHOPS_COUNT = 3;
-    private static final int START_ROW_INDEX = 2;
-
 
     private static final Set<Integer> SHORT_KEYS = Set.of(0, 1, 2, 3, 4, 5, 6, 7);
 
@@ -75,11 +75,13 @@ public class PostingExcelReportGenerator {
     private final PostingPreparationService preparationService;
 
     public byte[] createNewPostingFile(List<PostingInfoModel> postings,
+                                       List<PostingInfoModel> wrongPostings,
                                        Map<MaterialEntity, List<ArticlePromoInfoEntity>> materialArticlesMap) {
         if (Objects.isNull(postings) || postings.isEmpty()) {
             return null;
         }
-        List<PostingInfoModel> mutablePostings = new ArrayList<>(postings);
+        Map<Marketplace, List<PostingInfoModel>> groupedPostings = postings.stream()
+                .collect(Collectors.groupingBy(PostingInfoModel::getMarketplace));
 
         boolean isNotFullReport = checkUserRolesForFullReport();
 
@@ -90,13 +92,21 @@ public class PostingExcelReportGenerator {
 
         int nextRowIndex;
         try (Workbook wb = initialWorkBook(isNotFullReport); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            nextRowIndex = fillSheetLDCPRaspil(wb, mutablePostings, isNotFullReport);
-            for (MaterialEntity material : materialArticlesMap.keySet()) {
-                List<ArticlePromoInfoEntity> articles = materialArticlesMap.get(material);
-                nextRowIndex = fillSheetByMaterial(wb, mutablePostings, nextRowIndex, material, articles, isNotFullReport);
+            nextRowIndex = fillSheetLDCPRaspil(wb, groupedPostings.get(Marketplace.OZON), isNotFullReport);
+            for (Map.Entry<Marketplace, List<PostingInfoModel>> entry : groupedPostings.entrySet()) {
+                Marketplace marketplace = entry.getKey();
+                List<PostingInfoModel> mutablePostings = entry.getValue();
+                nextRowIndex = createRowTitle(wb, nextRowIndex, marketplace.getValue());
+                for (MaterialEntity material : materialArticlesMap.keySet()) {
+                    List<ArticlePromoInfoEntity> articles = materialArticlesMap.get(material);
+                    nextRowIndex = fillSheetByMaterial(wb, mutablePostings, nextRowIndex, material, articles, isNotFullReport);
+                }
+                nextRowIndex = fillSheetRemaining(wb, mutablePostings, nextRowIndex, isNotFullReport);
             }
-            fillSheetRemaining(wb, mutablePostings, nextRowIndex, isNotFullReport);
             fillSheetBySummary(wb, summaryOfMaterials, isNotFullReport);
+            if (Objects.nonNull(wrongPostings) && !wrongPostings.isEmpty()) {
+                fillSheetByWrongPostings(wb, wrongPostings, nextRowIndex);
+            }
             setColumnWidths(wb.getSheet(SHEET_NAME));
             wb.write(outputStream);
             log.info("Успешно подготовлен excel-файл для отчета отправлений");
@@ -167,14 +177,14 @@ public class PostingExcelReportGenerator {
     }
 
     private int fillSheetLDCPRaspil(Workbook wb, List<PostingInfoModel> postings, boolean isNotFullReport) {
-        createRowTitle(wb, 1, LDSP_RASPIL_SHOP_TITLE_NAME);
-        Sheet sheet = wb.getSheet(SHEET_NAME);
-        int rowIndex = START_ROW_INDEX;
-
+        int rowIndex = 1;
         List<PostingInfoModel> LDSPRaspilPostings = filterPostingsByShop(postings, LDSP_RASPIL_SHOP_NAME);
         if (LDSPRaspilPostings.isEmpty()) {
             return rowIndex;
         }
+
+        rowIndex = createRowTitle(wb, rowIndex, LDSP_RASPIL_SHOP_TITLE_NAME);
+        Sheet sheet = wb.getSheet(SHEET_NAME);
 
         rowIndex = fillRowsBySortingStrategy(sheet, LDSPRaspilPostings, rowIndex, SortingPostingByParam.COLOR_NUMBER, isNotFullReport);
 
@@ -193,19 +203,16 @@ public class PostingExcelReportGenerator {
         if (material.isNotSeparate()) {
             return nextRowIndex;
         }
-
-        int indexRowTitle = (nextRowIndex != 1) ? nextRowIndex - 1 : nextRowIndex;
-        createRowTitle(wb, indexRowTitle, material.getSeparatorName());
-
         Sheet sheet = wb.getSheet(SHEET_NAME);
-        int rowIndex = nextRowIndex;
 
         Set<String> promoNames = preparationService.extractPromoNames(articles);
         List<PostingInfoModel> filteredPostings = preparationService.getFilteringPostingsByArticle(postings, articles);
 
         if (filteredPostings.isEmpty()) {
-            return rowIndex;
+            return nextRowIndex;
         }
+
+        int rowIndex = createRowTitle(wb, nextRowIndex, material.getSeparatorName());
 
         rowIndex = fillRowsBySortingStrategy(sheet, filteredPostings, rowIndex, material.getSortingPostingBy(), isNotFullReport);
 
@@ -216,11 +223,28 @@ public class PostingExcelReportGenerator {
         return rowIndex;
     }
 
-    private void fillSheetRemaining(Workbook wb, List<PostingInfoModel> postings, int nextRowIndex, boolean isNotFullReport) {
+    private int fillSheetRemaining(Workbook wb, List<PostingInfoModel> postings, int nextRowIndex, boolean isNotFullReport) {
+        if (postings.isEmpty()) {
+            return nextRowIndex;
+        }
         Sheet sheet = wb.getSheet(SHEET_NAME);
-        createRowTitle(wb, nextRowIndex - 1, Marketplace.OZON.name());
-        fillRowsBySortingStrategy(sheet, postings, nextRowIndex, SortingPostingByParam.COLOR_NUMBER, isNotFullReport);
+        createRowTitle(wb, nextRowIndex - 1, OTHER_MATERIALS_TITLE);
+        int rowIndex = fillRowsBySortingStrategy(sheet, postings, nextRowIndex, SortingPostingByParam.COLOR_NUMBER, isNotFullReport);
+        return rowIndex + 2;
     }
+
+    private void fillSheetByWrongPostings(Workbook wb, List<PostingInfoModel> wrongPostings, int nextRowIndex) {
+        Sheet sheet = wb.getSheet(SHEET_NAME);
+        nextRowIndex = createRowTitle(wb, nextRowIndex, POSTINGS_WITH_WRONG_ARTICLE_TITLE);
+        for (PostingInfoModel posting : wrongPostings) {
+            Row row = sheet.createRow(nextRowIndex++);
+            row.createCell(0).setCellValue(posting.getPostingNumber());
+            row.createCell(1).setCellValue(posting.getPalletNumber());
+            row.createCell(2).setCellValue(String.format("Артикул: %s; Название магазина: %s",
+                    posting.getProduct().getArticle(), posting.getShopName()));
+        }
+    }
+
 
     private List<PostingInfoModel> filterPostingsByShop(List<PostingInfoModel> postings, String shopName) {
         return postings.stream()
@@ -286,7 +310,7 @@ public class PostingExcelReportGenerator {
         return rowIndex;
     }
 
-    private void createRowTitle(Workbook wb, int titleIndexRow, String rowText) {
+    private int createRowTitle(Workbook wb, int titleIndexRow, String rowText) {
         Sheet sheet = wb.getSheet(SHEET_NAME);
 
         Row row = sheet.createRow(titleIndexRow);
@@ -295,6 +319,7 @@ public class PostingExcelReportGenerator {
         Cell cell = row.createCell(2);
         cell.setCellValue(rowText);
         cell.setCellStyle(getTitleStyle(wb));
+        return ++titleIndexRow;
     }
 
     private CellStyle getTitleStyle(Workbook wb) {
@@ -317,7 +342,7 @@ public class PostingExcelReportGenerator {
             switch (value) {
                 case Number number -> row.createCell(j).setCellValue(number.doubleValue());
                 case String str -> row.createCell(j).setCellValue(str);
-                case Marketplace marketplace -> row.createCell(j).setCellValue(marketplace.toString());
+                case Marketplace marketplace -> row.createCell(j).setCellValue(marketplace.getValue());
                 default -> row.createCell(j).setCellValue("");
             }
         });

@@ -6,6 +6,10 @@ import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.utils.PdfMerger;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.batik.transcoder.Transcoder;
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.fop.svg.PDFTranscoder;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -43,7 +47,7 @@ public class FileUtils {
         log.info("Успешно подготовлен zip архив");
         return baos.toByteArray();
     }
-    
+
     public static byte[] mergePdfFiles(List<byte[]> pdfFiles) {
         if (Objects.isNull(pdfFiles) || pdfFiles.isEmpty()) {
             return null;
@@ -63,6 +67,24 @@ public class FileUtils {
         }
         log.info("Успешно подготовлен pdf-файл");
         return mergedPdf.toByteArray();
+    }
+
+    public static byte[] convertSVGtoPDF(byte[] svgData) {
+        try (ByteArrayInputStream svgInputStream = new ByteArrayInputStream(svgData);
+             ByteArrayOutputStream pdfOutputStream = new ByteArrayOutputStream()) {
+
+            Transcoder transcoder = new PDFTranscoder();
+
+            TranscoderInput input = new TranscoderInput(svgInputStream);
+
+            TranscoderOutput output = new TranscoderOutput(pdfOutputStream);
+
+            transcoder.transcode(input, output);
+
+            return pdfOutputStream.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка при конвертации SVG В PDF файлов этикеток");
+        }
     }
 
 }

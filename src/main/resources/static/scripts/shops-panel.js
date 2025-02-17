@@ -205,10 +205,10 @@ export function openCreateShopModal() {
     apiKeyInput.classList.add('input-not-role');
 
     const clientIdLabel = document.createElement('label');
-    clientIdLabel.textContent = 'Client ID';
+    clientIdLabel.textContent = 'Client ID (только для OZON)';
     const clientIdInput = document.createElement('input');
     clientIdInput.type = 'password';
-    clientIdInput.required = true;
+    clientIdInput.required = false;
     clientIdInput.classList.add('input-not-role');
 
 

@@ -26,4 +26,7 @@ public class ProductModel {
     private String color;
     private String promoName;
     private String comment;
+
+    @Builder.Default
+    private Boolean wrongArticle = false;
 }

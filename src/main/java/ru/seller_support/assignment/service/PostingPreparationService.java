@@ -38,7 +38,8 @@ public class PostingPreparationService {
     public List<PostingInfoModel> sortPostingsByMarketplaceAndColorNumber(List<PostingInfoModel> postings) {
         return postings.stream()
                 .sorted(Comparator.comparing(PostingInfoModel::getMarketplace)
-                        .thenComparing(post -> post.getProduct().getColorNumber()))
+                        .thenComparing(post -> post.getProduct().getColorNumber(),
+                                Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
     }
 

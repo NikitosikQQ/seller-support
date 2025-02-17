@@ -26,10 +26,11 @@ public class ReportController {
 
     @GetMapping(value = "/postings", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<byte[]> test(@RequestParam("from") String from,
-                                       @RequestParam("to") String to) {
+                                       @RequestParam("to") String to,
+                                       @RequestParam(value = "supplyId", required = false) String supplyId) {
         log.info("Получен запрос на генерацию файлов по отправлениям на отгрузку от {} до {}", from, to);
         Instant now = Instant.now();
-        byte[] zip = marketplaceProcessor.getNewPostings(from, to, now);
+        byte[] zip = marketplaceProcessor.getNewPostings(from, to, now, supplyId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDispositionFormData("attachment", ZIP_NAME);

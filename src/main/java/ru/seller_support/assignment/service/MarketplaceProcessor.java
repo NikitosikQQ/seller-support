@@ -7,6 +7,7 @@ import ru.seller_support.assignment.adapter.marketplace.MarketplaceAdapter;
 import ru.seller_support.assignment.adapter.postgres.entity.ArticlePromoInfoEntity;
 import ru.seller_support.assignment.adapter.postgres.entity.MaterialEntity;
 import ru.seller_support.assignment.adapter.postgres.entity.ShopEntity;
+import ru.seller_support.assignment.domain.GetPostingsModel;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
 import ru.seller_support.assignment.exception.PostingGenerationException;
@@ -36,7 +37,7 @@ public class MarketplaceProcessor {
     private final PostingExcelReportGenerator postingExcelReportGenerator;
     private final PostingPreparationService postingPreparationService;
 
-    public byte[] getNewPostings(String from, String to, Instant now) {
+    public byte[] getNewPostings(String from, String to, Instant now, String supplyId) {
         Instant fromDate = CommonUtils.parseStringToInstant(from);
         Instant toDate = CommonUtils.parseStringToInstant(to);
 
@@ -47,19 +48,23 @@ public class MarketplaceProcessor {
         }
         ExecutorService executor = Executors.newFixedThreadPool(shops.size());
 
-        List<PostingInfoModel> postings = getPostingInfoModelByShopAsync(shops, fromDate, toDate, executor);
-        log.info("Успешно получены отправления в количестве {}", postings.size());
+        List<PostingInfoModel> allPostings = getPostingInfoModelByShopAsync(shops, fromDate, toDate, supplyId, executor);
+        List<PostingInfoModel> wrongPostings = filterPostingsByWrong(allPostings, true);
+        List<PostingInfoModel> correctPostings = filterPostingsByWrong(allPostings, false);
 
-        List<byte[]> pdfRawPackagesBytes = getPackagesOfPostingsAsync(shops, postings, executor);
-        log.info("Успешно получены этикетки в количестве {}", postings.size());
+        log.info("Успешно получены отправления в количестве {}, из них ошибочных артикулов {}", allPostings.size(),
+                wrongPostings.size());
+
+        List<byte[]> pdfRawPackagesBytes = getPackagesOfPostingsAsync(shops, allPostings, executor);
+        log.info("Успешно получены этикетки в количестве {}", allPostings.size());
 
         executor.shutdown();
 
-        postingPreparationService.preparePostingResult(postings);
+        postingPreparationService.preparePostingResult(correctPostings);
 
         Map<MaterialEntity, List<ArticlePromoInfoEntity>> articles = postingPreparationService.getMaterialArticlesMap();
 
-        byte[] excelBytes = postingExcelReportGenerator.createNewPostingFile(postings, articles);
+        byte[] excelBytes = postingExcelReportGenerator.createNewPostingFile(correctPostings, wrongPostings, articles);
         String excelName = CommonUtils.getFormattedStringWithInstant(EXCEL_NAME_PATTERN, now);
 
         byte[] pdfBytes = FileUtils.mergePdfFiles(pdfRawPackagesBytes);
@@ -74,14 +79,27 @@ public class MarketplaceProcessor {
         return zip;
     }
 
+    private List<PostingInfoModel> filterPostingsByWrong(List<PostingInfoModel> postings, boolean needWrong) {
+        return postings.stream()
+                .filter(post -> needWrong == post.getProduct().getWrongArticle())
+                .toList();
+    }
+
     private List<PostingInfoModel> getPostingInfoModelByShopAsync(List<ShopEntity> shops,
                                                                   Instant from,
                                                                   Instant to,
+                                                                  String supplyId,
                                                                   ExecutorService executor) {
+        GetPostingsModel getPostingsRequest = GetPostingsModel.builder()
+                .from(from)
+                .to(to)
+                .supplyId(supplyId)
+                .build();
+
         List<PostingInfoModel> postingInfoModels;
         List<CompletableFuture<List<PostingInfoModel>>> futures = shops.stream()
                 .map(shop -> CompletableFuture.supplyAsync(() ->
-                        getPostingDataByShop(shop, from, to), executor))
+                        getPostingDataByShop(shop, getPostingsRequest), executor))
                 .toList();
 
         CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
@@ -133,9 +151,9 @@ public class MarketplaceProcessor {
         return adapter.getPackagesByPostingNumbers(shop, actualPostings);
     }
 
-    private List<PostingInfoModel> getPostingDataByShop(ShopEntity shop, Instant from, Instant to) {
+    private List<PostingInfoModel> getPostingDataByShop(ShopEntity shop, GetPostingsModel request) {
         MarketplaceAdapter adapter = getAdapterByMarketplace(shop.getMarketplace());
-        return adapter.getNewPosting(shop, from, to);
+        return adapter.getNewPosting(shop, request);
     }
 
     private MarketplaceAdapter getAdapterByMarketplace(Marketplace marketplace) {

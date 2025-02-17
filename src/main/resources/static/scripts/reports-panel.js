@@ -1,8 +1,8 @@
 import {checkTokenExpirationAndGet} from "./panel.js";
 
-export async function getPosting(from, to, signal) {
+export async function getPosting(from, to, wbSupplyId, signal) {
     const token = checkTokenExpirationAndGet();
-    const response = await fetch(`/api/v1/reports/postings?from=${from}&to=${to}`, {
+    const response = await fetch(`/api/v1/reports/postings?from=${from}&to=${to}&supplyId=${wbSupplyId}`, {
         method: 'GET',
         signal,
         headers: {
@@ -57,7 +57,7 @@ export function openModal() {
 
     // Заголовок модального окна
     const title = document.createElement('h3');
-    title.textContent = 'Фильтр по датам отправлений';
+    title.textContent = 'Фильтр по отправлениям';
 
     const fromDateLabel = document.createElement('label');
     fromDateLabel.textContent = 'Начало периода даты принятия в обработку:';
@@ -70,6 +70,13 @@ export function openModal() {
     const toDateInput = document.createElement('input');
     toDateInput.type = 'date';
     toDateInput.className = 'input-not-role';
+
+    const wbSupplyIdLabel = document.createElement('label');
+    wbSupplyIdLabel.textContent = 'QR-Код поставки WB:';
+    const wbSupplyIdInput = document.createElement('input');
+    wbSupplyIdInput.type = 'text';
+    wbSupplyIdInput.required = false;
+    wbSupplyIdInput.className = 'input-not-role';
 
     // Лоадер
     const loader = document.createElement('div');
@@ -86,6 +93,7 @@ export function openModal() {
     generateButton.addEventListener('click', async () => {
         const fromDate = fromDateInput.value;
         const toDate = toDateInput.value;
+        const wbSupplyId = wbSupplyIdInput.value || '';
 
         if (!fromDate || !toDate) {
             alert('Пожалуйста, заполните обе даты.');
@@ -98,7 +106,7 @@ export function openModal() {
 
         // Вызов функции для получения zip-архива
         try {
-            await getPosting(fromDate, toDate, signal);
+            await getPosting(fromDate, toDate, wbSupplyId, signal);
             successMessage.classList.remove('hidden');
         } finally {
             // Убираем лоадер
@@ -113,6 +121,8 @@ export function openModal() {
     modalContent.appendChild(fromDateInput);
     modalContent.appendChild(toDateLabel);
     modalContent.appendChild(toDateInput);
+    modalContent.appendChild(wbSupplyIdLabel);
+    modalContent.appendChild(wbSupplyIdInput);
     modalContent.appendChild(generateButton);
     modalContent.appendChild(loader);
     modalContent.appendChild(successMessage);

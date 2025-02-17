@@ -27,6 +27,13 @@ public interface OzonAdapterMapper {
     PostingInfoModel toPostingInfoModel(Posting posting,
                                         ShopEntity shop);
 
+    @Mapping(target = "marketplace", constant = "OZON")
+    @Mapping(target = "palletNumber", source = "shop.palletNumber")
+    @Mapping(target = "shopName", source = "shop.name")
+    @Mapping(target = "product", expression = "java(getWrongProduct(posting, shop))")
+    PostingInfoModel toWrongPostingInfoModel(Posting posting,
+                                             ShopEntity shop);
+
     @Mapping(target = "price", source = "product.price", qualifiedByName = "price")
     @Mapping(target = "totalPrice", expression = "java(getTotalPrice(product))")
     @Mapping(target = "article", source = "product.offerId")
@@ -134,6 +141,13 @@ public interface OzonAdapterMapper {
                     posting.getPostingNumber(), shop.getName()));
         }
         return toProductModel(posting.getProducts().getFirst());
+    }
+
+    default ProductModel getWrongProduct(Posting posting, ShopEntity shop) {
+        return ProductModel.builder()
+                .article(posting.getProducts().getFirst().getOfferId())
+                .wrongArticle(true)
+                .build();
     }
 
 }

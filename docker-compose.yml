@@ -12,6 +12,7 @@ services:
       - database
       - app
     volumes:
+#     - './nginx-local.conf:/etc/nginx/nginx.conf'
       - './nginx.conf:/etc/nginx/nginx.conf'
       - '/etc/ssl/private/nginx-cert.pem:/etc/nginx/ssl/nginx-cert.pem:ro'
       - '/etc/ssl/private/nginx-key.pem:/etc/nginx/ssl/nginx-key.pem:ro'
@@ -50,6 +51,7 @@ services:
      - APP_SECURITY_LIFETIME=${APP_SECURITY_LIFETIME:-PT120M}
      - APP_SECURITY_SALT=${APP_SECURITY_SALT:-ce66e847ab14d3d8}
      - APP_INTEGRATIONS_MARKETPLACES_OZON_ROOT_URL=https://api-seller.ozon.ru
+     - APP_INTEGRATIONS_MARKETPLACES_WB_ROOT_URL=https://marketplace-api.wildberries.ru
 
 volumes:
   postgres_data:
