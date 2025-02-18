@@ -12,6 +12,18 @@ import lombok.extern.jackson.Jacksonized;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Sticker {
 
+    //id заказа
+    @JsonProperty(required = true)
+    String orderId;
+
+    //первая часть ID стикера
+    @JsonProperty(required = true)
+    String partA;
+
+    //вторая часть ID стикера
+    @JsonProperty(required = true)
+    String partB;
+
     //закодированные байты этикетки в base64(формат svg)
     @JsonProperty(required = true)
     String file;

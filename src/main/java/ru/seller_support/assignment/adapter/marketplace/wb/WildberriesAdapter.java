@@ -18,10 +18,7 @@ import ru.seller_support.assignment.domain.enums.Marketplace;
 import ru.seller_support.assignment.exception.ArticleMappingException;
 import ru.seller_support.assignment.util.FileUtils;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +59,7 @@ public class WildberriesAdapter extends MarketplaceAdapter {
     @Override
     public List<byte[]> getPackagesByPostingNumbers(ShopEntity shop, List<PostingInfoModel> postings) {
         List<byte[]> packages = new ArrayList<>();
+        Map<String, String> orderIdStickerIdMapping = new HashMap<>();
         Base64.Decoder decoder = Base64.getDecoder();
 
         List<String> orderIds = postings.stream()
@@ -80,11 +78,13 @@ public class WildberriesAdapter extends MarketplaceAdapter {
                     request);
 
             partResponse.getStickers().forEach(sticker -> {
+                orderIdStickerIdMapping.put(sticker.getOrderId(), sticker.getPartA().concat(sticker.getPartB()));
                 byte[] decodedBytes = decoder.decode(sticker.getFile());
                 byte[] pdfBytes = FileUtils.convertSVGtoPDF(decodedBytes);
                 packages.add(pdfBytes);
             });
         }
+        changeOrderIdToStickerId(postings, orderIdStickerIdMapping);
         log.info("Количество этикеток для магазина {} = {}", shop.getName(), orderIds.size());
 
         return packages;
@@ -94,5 +94,13 @@ public class WildberriesAdapter extends MarketplaceAdapter {
         return GetStickersRequest.builder()
                 .orders(orderIds.stream().map(Long::valueOf).toList())
                 .build();
+    }
+
+    private void changeOrderIdToStickerId(List<PostingInfoModel> postings,
+                                          Map<String, String> orderIdStickerIdMapping) {
+        postings.forEach(posting -> {
+            String stickerId = orderIdStickerIdMapping.get(posting.getPostingNumber());
+            posting.setPostingNumber(stickerId);
+        });
     }
 }
