@@ -66,7 +66,7 @@ public class PostingExcelReportGenerator {
             Map.entry(5, post -> post.getProduct().getQuantity()),
             Map.entry(6, PostingInfoModel::getMarketplace),
             Map.entry(7, post -> post.getProduct().getComment()),
-            Map.entry(8, post -> CommonUtils.formatInstant(post.getInProcessAt())),
+            Map.entry(8, post -> CommonUtils.formatInstantToDateTimeString(post.getInProcessAt())),
             Map.entry(9, post -> post.getProduct().getTotalPrice()),
             Map.entry(10, post -> post.getProduct().getAreaInMeters()),
             Map.entry(11, post -> post.getProduct().getPricePerSquareMeter())

@@ -57,7 +57,8 @@ export async function fetchEditShop(id, updatedData) {
                 palletNumber: updatedData.palletNumber,
                 marketplace: updatedData.marketplace,
                 apiKey: updatedData.apiKey === 'undefined' ? null : updatedData.apiKey,
-                clientId: updatedData.clientId === 'undefined' ? null : updatedData.clientId
+                clientId: updatedData.clientId === 'undefined' ? null : updatedData.clientId,
+                businessId: updatedData.businessId === 'undefined' ? null : updatedData.businessId
             })
         });
         if (!response.ok) {
@@ -205,11 +206,18 @@ export function openCreateShopModal() {
     apiKeyInput.classList.add('input-not-role');
 
     const clientIdLabel = document.createElement('label');
-    clientIdLabel.textContent = 'Client ID (только для OZON)';
+    clientIdLabel.textContent = 'Client/Campaign ID (OZON/YANDEX)';
     const clientIdInput = document.createElement('input');
     clientIdInput.type = 'password';
     clientIdInput.required = false;
     clientIdInput.classList.add('input-not-role');
+
+    const businessIdLabel = document.createElement('label');
+    businessIdLabel.textContent = 'Business ID (только для Яндекс Маркет)';
+    const businessIdInput = document.createElement('input');
+    businessIdInput.type = 'password';
+    businessIdInput.required = false;
+    businessIdInput.classList.add('input-not-role');
 
 
     fetchMarketplaces().then((marketplaces) => {
@@ -260,6 +268,7 @@ export function openCreateShopModal() {
             palletNumber: palletNumberInput.value,
             apiKey: apiKeyInput.value === 'undefined' ? null : apiKeyInput.value,
             clientId: clientIdInput.value === 'undefined' ? null : clientIdInput.value,
+            businessId: businessIdInput.value === 'undefined' ? null : businessIdInput.value,
             marketplace: selectedMarketplace, // Передаем выбранный маркетплейс
         };
 
@@ -297,6 +306,8 @@ export function openCreateShopModal() {
     form.appendChild(apiKeyInput);
     form.appendChild(clientIdLabel);
     form.appendChild(clientIdInput);
+    form.appendChild(businessIdLabel);
+    form.appendChild(businessIdInput);
     form.appendChild(marketPlaceLabel);
     form.appendChild(marketplaceContainer);
     form.appendChild(saveButton);
@@ -356,12 +367,20 @@ export function openEditShopModal(shop) {
     apiKeyInput.classList.add('input-not-role');
 
     const clientIdLabel = document.createElement('label');
-    clientIdLabel.textContent = 'Client ID';
+    clientIdLabel.textContent = 'Client/Campaign ID (OZON/YANDEX)';
     const clientIdInput = document.createElement('input');
     clientIdInput.type = 'password';
-    clientIdInput.required = true;
+    clientIdInput.required = false;
     clientIdInput.value = shop.clientId;
     clientIdInput.classList.add('input-not-role');
+
+    const businessIdLabel = document.createElement('label');
+    businessIdLabel.textContent = 'Business ID (только для Яндекс Маркет)';
+    const businessIdInput = document.createElement('input');
+    businessIdInput.type = 'password';
+    businessIdInput.required = false;
+    businessIdInput.value = shop.businessId
+    businessIdInput.classList.add('input-not-role');
 
     fetchMarketplaces().then((marketplaces) => {
         marketplaces.forEach((marketplace) => {
@@ -414,6 +433,7 @@ export function openEditShopModal(shop) {
             palletNumber: palletNumberInput.value,
             apiKey: apiKeyInput.value,
             clientId: clientIdInput.value,
+            businessId: businessIdInput.value,
             marketplace: selectedMarketplace, // Передаем выбранный маркетплейс
         };
 
@@ -431,6 +451,8 @@ export function openEditShopModal(shop) {
     form.appendChild(apiKeyInput);
     form.appendChild(clientIdLabel);
     form.appendChild(clientIdInput);
+    form.appendChild(businessIdLabel);
+    form.appendChild(businessIdInput);
     form.appendChild(marketPlaceLabel);
     form.appendChild(marketplaceContainer);
     form.appendChild(saveButton);

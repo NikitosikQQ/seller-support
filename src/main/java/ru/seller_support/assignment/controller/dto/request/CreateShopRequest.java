@@ -29,4 +29,6 @@ public class CreateShopRequest {
     Marketplace marketplace;
 
     String clientId;
+
+    String businessId;
 }

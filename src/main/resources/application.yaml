@@ -25,3 +25,5 @@ app:
         rootUrl: ${APP_INTEGRATIONS_MARKETPLACES_OZON_ROOT_URL:https://api-seller.ozon.ru}
       wb:
         rootUrl: ${APP_INTEGRATIONS_MARKETPLACES_WB_ROOT_URL:https://marketplace-api.wildberries.ru}
+      yandex:
+        rootUrl: ${APP_INTEGRATIONS_MARKETPLACES_YANDEX_ROOT_URL:https://api.partner.market.yandex.ru}

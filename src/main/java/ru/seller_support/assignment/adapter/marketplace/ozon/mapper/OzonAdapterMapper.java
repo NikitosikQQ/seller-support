@@ -144,6 +144,11 @@ public interface OzonAdapterMapper {
     }
 
     default ProductModel getWrongProduct(Posting posting, ShopEntity shop) {
+        if (posting.getProducts().size() != 1) {
+            throw new IllegalArgumentException(String.format(
+                    "Количество артикулов в отправлении %s магазина %s не равна 1",
+                    posting.getPostingNumber(), shop.getName()));
+        }
         return ProductModel.builder()
                 .article(posting.getProducts().getFirst().getOfferId())
                 .wrongArticle(true)

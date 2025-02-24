@@ -25,12 +25,16 @@ public class CommonUtils {
         return resultDate.atStartOfDay(ZoneOffset.UTC).toInstant().plusSeconds(COUNT_OF_SECONDS_FOR_END_OF_DAY);
     }
 
-    public static String formatInstant(Instant instant) {
-        return DATE_TIME_FORMATTER.format(instant);
+    public static String formatInstantToDateTimeString(Instant instant) {
+        return formatInstantToString(DATE_TIME_FORMATTER, instant);
     }
 
     public static String formatInstantToDateString(Instant instant) {
-        return DATE_FORMATTER.format(instant);
+        return formatInstantToString(DATE_FORMATTER, instant);
+    }
+
+    public static String formatInstantToString(DateTimeFormatter formatter, Instant instant) {
+        return formatter.format(instant);
     }
 
     public static String getFormattedStringWithInstant(String pattern, Instant instant) {

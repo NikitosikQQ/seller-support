@@ -31,8 +31,11 @@ public class ShopEntity {
     @Column(name = "api_key", nullable = false)
     private String apiKey;
 
-    @Column(name = "clientId")
+    @Column(name = "client_id")
     private String clientId;
+
+    @Column(name = "business_id")
+    private String businessId;
 
     @Column(name = "active")
     private Boolean active;

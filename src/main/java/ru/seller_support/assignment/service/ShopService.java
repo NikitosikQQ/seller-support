@@ -35,6 +35,7 @@ public class ShopService {
         shop.setPalletNumber(request.getPalletNumber());
         shop.setApiKey(encryptedApiKey);
         shop.setActive(true);
+        shop.setBusinessId(request.getBusinessId());
         shopRepository.save(shop);
     }
 
@@ -69,6 +70,9 @@ public class ShopService {
         }
         if (Objects.nonNull(request.getClientId())) {
             shop.setClientId(request.getClientId());
+        }
+        if (Objects.nonNull(request.getBusinessId())) {
+            shop.setBusinessId(request.getBusinessId());
         }
         if (Objects.nonNull(request.getApiKey())) {
             shop.setApiKey(encryptService.encrypt(request.getApiKey()));

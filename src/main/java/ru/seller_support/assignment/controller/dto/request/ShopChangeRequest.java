@@ -29,4 +29,6 @@ public class ShopChangeRequest {
     Marketplace marketplace;
 
     String clientId;
+
+    String businessId;
 }
