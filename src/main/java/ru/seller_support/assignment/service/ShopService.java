@@ -39,6 +39,13 @@ public class ShopService {
         shopRepository.save(shop);
     }
 
+    public List<ShopEntity> findAllByMarketplace(String marketplaceName) {
+        Marketplace marketplace = Marketplace.valueOf(marketplaceName);
+        return shopRepository.findAllByMarketplace(marketplace).stream()
+                .peek(shop -> shop.setApiKey(encryptService.decrypt(shop.getApiKey())))
+                .toList();
+    }
+
     public List<ShopEntity> findAll() {
         return shopRepository.findAllByActive(true).stream()
                 .peek(shop -> shop.setApiKey(encryptService.decrypt(shop.getApiKey())))

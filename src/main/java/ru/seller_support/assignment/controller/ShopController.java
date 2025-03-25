@@ -33,6 +33,18 @@ public class ShopController {
                 .toList();
     }
 
+    @GetMapping(path = "/{marketplace}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<ShopResponse> getAllShopsByMarketplace(@PathVariable("marketplace") String marketplaceName) {
+        return shopService.findAllByMarketplace(marketplaceName).stream()
+                .map(shop -> ShopResponse.builder()
+                        .id(shop.getId())
+                        .name(shop.getName())
+                        .marketplace(shop.getMarketplace())
+                        .palletNumber(shop.getPalletNumber())
+                        .build())
+                .toList();
+    }
+
     @GetMapping(path = "/marketplaces", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<String> getMarketplaceNames() {
         return shopService.getAllMarketplaces();

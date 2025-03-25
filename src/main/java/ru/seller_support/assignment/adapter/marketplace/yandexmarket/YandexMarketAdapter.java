@@ -46,6 +46,9 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
 
     @Override
     public List<PostingInfoModel> getNewPosting(ShopEntity shop, GetPostingsModel request) {
+        if (Objects.isNull(request.getYandexTo())) {
+            return Collections.emptyList();
+        }
         GetShipmentsRequest getShipmentsRequest = buildGetShipmentsRequest(request);
         GetShipmentsResponse shipmentsResponse = client.getShipments(
                 shop.getApiKey(), shop.getClientId(), getShipmentsRequest);
@@ -55,7 +58,7 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
         List<Shipment> shipments = shipmentsResponse.getResult().getShipments();
         if (shipments.size() > 1) {
             throw new IllegalArgumentException(String.format("Найдено более 1 отгрузки для Yandex market магазина %s на дату %s",
-                    shop.getName(), request.getTo()));
+                    shop.getName(), request.getYandexTo()));
         }
         List<Long> orderIds = shipments.getFirst().getOrderIds();
         GetOrdersByIdsResponse response = client.getOrdersByIds(shop.getApiKey(), shop.getClientId(), orderIds);
@@ -132,9 +135,9 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
     private GetShipmentsRequest buildGetShipmentsRequest(GetPostingsModel request) {
         return GetShipmentsRequest.builder()
                 .dateFrom(CommonUtils.formatInstantToString(
-                        YandexMarketConstants.GET_SHIPMENT_DATE_FORMATTER, request.getTo()))
+                        YandexMarketConstants.GET_SHIPMENT_DATE_FORMATTER, request.getYandexTo()))
                 .dateTo(CommonUtils.formatInstantToString(
-                        YandexMarketConstants.GET_SHIPMENT_DATE_FORMATTER, request.getTo()))
+                        YandexMarketConstants.GET_SHIPMENT_DATE_FORMATTER, request.getYandexTo()))
                 .status(YandexMarketConstants.ShipmentStatus.OUTBOUND_READY_FOR_CONFIRMATION)
                 .cancelledOrders(false)
                 .build();

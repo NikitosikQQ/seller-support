@@ -3,7 +3,6 @@ package ru.seller_support.assignment.adapter.marketplace.wb;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import ru.seller_support.assignment.adapter.marketplace.MarketplaceAdapter;
 import ru.seller_support.assignment.adapter.marketplace.wb.client.WildberriesClient;
 import ru.seller_support.assignment.adapter.marketplace.wb.common.WildberriesConstants;
@@ -12,6 +11,7 @@ import ru.seller_support.assignment.adapter.marketplace.wb.dto.response.GetOrder
 import ru.seller_support.assignment.adapter.marketplace.wb.dto.response.GetStickersResponse;
 import ru.seller_support.assignment.adapter.marketplace.wb.mapper.WildberriesAdapterMapper;
 import ru.seller_support.assignment.adapter.postgres.entity.ShopEntity;
+import ru.seller_support.assignment.controller.dto.request.WbSupplyDetails;
 import ru.seller_support.assignment.domain.GetPostingsModel;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
@@ -37,10 +37,18 @@ public class WildberriesAdapter extends MarketplaceAdapter {
 
     @Override
     public List<PostingInfoModel> getNewPosting(ShopEntity shop, GetPostingsModel request) {
-        if (!StringUtils.hasLength(request.getSupplyId())) {
+        List<WbSupplyDetails> supplies = request.getWbSupplies();
+
+        if (Objects.isNull(supplies) || supplies.isEmpty()) {
             return Collections.emptyList();
         }
-        GetOrdersBySupplyIdResponse response = client.getOrdersBySupplyId(shop.getApiKey(), request.getSupplyId());
+
+        String supplyId = getSupplyIdByShopName(supplies, shop);
+        if (Objects.isNull(supplyId)) {
+            return Collections.emptyList();
+        }
+
+        GetOrdersBySupplyIdResponse response = client.getOrdersBySupplyId(shop.getApiKey(), supplyId);
         log.info("Успешно получены отправления для {} в количестве {}", shop.getName(), response.getOrders().size());
 
         return response.getOrders()
@@ -102,5 +110,13 @@ public class WildberriesAdapter extends MarketplaceAdapter {
             String stickerId = orderIdStickerIdMapping.get(posting.getPostingNumber());
             posting.setPostingNumber(stickerId);
         });
+    }
+
+    private String getSupplyIdByShopName(List<WbSupplyDetails> supplies, ShopEntity shop) {
+        return supplies.stream()
+                .filter(it -> it.getShopName().equalsIgnoreCase(shop.getName()))
+                .map(WbSupplyDetails::getSupplyId)
+                .findFirst()
+                .orElse(null);
     }
 }

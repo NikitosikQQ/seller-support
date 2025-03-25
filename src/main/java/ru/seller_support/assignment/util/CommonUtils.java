@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 @UtilityClass
 public class CommonUtils {
@@ -21,6 +22,9 @@ public class CommonUtils {
 
 
     public static Instant parseStringToInstant(String date) {
+        if (Objects.isNull(date) || date.isEmpty()) {
+            return null;
+        }
         LocalDate resultDate = LocalDate.parse(date, REQUEST_DATE_FORMATTER);
         return resultDate.atStartOfDay(ZoneOffset.UTC).toInstant().plusSeconds(COUNT_OF_SECONDS_FOR_END_OF_DAY);
     }

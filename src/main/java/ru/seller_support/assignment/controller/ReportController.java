@@ -6,13 +6,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.seller_support.assignment.controller.dto.request.GeneratePostingsReportRequest;
 import ru.seller_support.assignment.service.MarketplaceProcessor;
-
-import java.time.Instant;
 
 @RestController
 @RequestMapping("/api/v1/reports")
@@ -24,18 +23,15 @@ public class ReportController {
 
     private final MarketplaceProcessor marketplaceProcessor;
 
-    @GetMapping(value = "/postings", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<byte[]> test(@RequestParam("from") String from,
-                                       @RequestParam("to") String to,
-                                       @RequestParam(value = "supplyId", required = false) String supplyId) {
-        log.info("Получен запрос на генерацию файлов по отправлениям на отгрузку от {} до {}", from, to);
-        Instant now = Instant.now();
-        byte[] zip = marketplaceProcessor.getNewPostings(from, to, now, supplyId);
+    @PostMapping(value = "/postings", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<byte[]> test(@RequestBody GeneratePostingsReportRequest request) {
+        log.info("Получен запрос на генерацию файлов по отправлениям на отгрузку: {}", request);
+        byte[] zip = marketplaceProcessor.getNewPostings(request);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDispositionFormData("attachment", ZIP_NAME);
 
-        log.info("Успешно сгенерирован архив по отправлениям на отгрузку от {} до {}", from, to);
+        log.info("Успешно сгенерирован архив по отправлениям на отгрузку по запросу {}", request);
         return new ResponseEntity<>(zip, headers, HttpStatus.OK);
     }
 }

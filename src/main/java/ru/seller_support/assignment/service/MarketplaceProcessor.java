@@ -7,6 +7,7 @@ import ru.seller_support.assignment.adapter.marketplace.MarketplaceAdapter;
 import ru.seller_support.assignment.adapter.postgres.entity.ArticlePromoInfoEntity;
 import ru.seller_support.assignment.adapter.postgres.entity.MaterialEntity;
 import ru.seller_support.assignment.adapter.postgres.entity.ShopEntity;
+import ru.seller_support.assignment.controller.dto.request.GeneratePostingsReportRequest;
 import ru.seller_support.assignment.domain.GetPostingsModel;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
@@ -37,10 +38,8 @@ public class MarketplaceProcessor {
     private final PostingExcelReportGenerator postingExcelReportGenerator;
     private final PostingPreparationService postingPreparationService;
 
-    public byte[] getNewPostings(String from, String to, Instant now, String supplyId) {
-        Instant fromDate = CommonUtils.parseStringToInstant(from);
-        Instant toDate = CommonUtils.parseStringToInstant(to);
-
+    public byte[] getNewPostings(GeneratePostingsReportRequest request) {
+        Instant now = Instant.now();
         List<ShopEntity> shops = shopService.findAll();
 
         if (Objects.isNull(shops) || shops.isEmpty()) {
@@ -48,7 +47,9 @@ public class MarketplaceProcessor {
         }
         ExecutorService executor = Executors.newFixedThreadPool(shops.size());
 
-        List<PostingInfoModel> allPostings = getPostingInfoModelByShopAsync(shops, fromDate, toDate, supplyId, executor);
+        GetPostingsModel getPostingsModel = prepareGetPostingModel(request);
+
+        List<PostingInfoModel> allPostings = getPostingInfoModelByShopAsync(shops, getPostingsModel, executor);
         List<PostingInfoModel> wrongPostings = filterPostingsByWrong(allPostings, true);
         List<PostingInfoModel> correctPostings = filterPostingsByWrong(allPostings, false);
 
@@ -73,7 +74,8 @@ public class MarketplaceProcessor {
         byte[] zip = FileUtils.createZip(excelBytes, excelName, pdfBytes, pdfFileName);
         if (Objects.isNull(zip)) {
             throw new PostingGenerationException(String.format(
-                    "Нет отгружаемых отправлений на период с %s по %s", fromDate, toDate));
+                    "Нет отгружаемых отправлений на период с %s по %s",
+                    getPostingsModel.getFrom(), getPostingsModel.getTo()));
         }
 
         return zip;
@@ -86,15 +88,8 @@ public class MarketplaceProcessor {
     }
 
     private List<PostingInfoModel> getPostingInfoModelByShopAsync(List<ShopEntity> shops,
-                                                                  Instant from,
-                                                                  Instant to,
-                                                                  String supplyId,
+                                                                  GetPostingsModel getPostingsRequest,
                                                                   ExecutorService executor) {
-        GetPostingsModel getPostingsRequest = GetPostingsModel.builder()
-                .from(from)
-                .to(to)
-                .supplyId(supplyId)
-                .build();
 
         List<PostingInfoModel> postingInfoModels;
         List<CompletableFuture<List<PostingInfoModel>>> futures = shops.stream()
@@ -163,5 +158,17 @@ public class MarketplaceProcessor {
                         String.format("Нет обработчика маркетплейса %s", marketplace)));
     }
 
+    private GetPostingsModel prepareGetPostingModel(GeneratePostingsReportRequest request) {
+        Instant fromDate = CommonUtils.parseStringToInstant(request.getFrom());
+        Instant toDate = CommonUtils.parseStringToInstant(request.getTo());
+        Instant toYandexDate = CommonUtils.parseStringToInstant(request.getYandexTo());
+
+        return GetPostingsModel.builder()
+                .from(fromDate)
+                .to(toDate)
+                .yandexTo(toYandexDate)
+                .wbSupplies(request.getSupplies())
+                .build();
+    }
 
 }

@@ -22,6 +22,8 @@
     width: 90%;
     position: relative;
     animation: fadeIn 0.3s ease-out; /* Анимация появления */
+    max-height: 80vh; /* Ограничиваем высоту окна */
+    overflow-y: auto; /* Добавляем вертикальный скролл, если контент выходит за пределы */
 }
 
 /* Кнопка закрытия */
@@ -312,7 +314,7 @@ modal-content .checkbox-group {
 }
 
 /* Кнопка */
-.create-report-button {
+.generate-report-button {
     background: #3b3b3b;
     color: #ffffff;
     padding: 0.85rem;
@@ -322,13 +324,59 @@ modal-content .checkbox-group {
     font-weight: bold;
     cursor: pointer;
     transition: background 0.3s ease, box-shadow 0.2s ease;
+    width: 100%;
 }
 
-.create-report-button:hover {
+.generate-report-button:hover {
     background: #030303;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.79);
 }
 
-.create-report-button:active {
+.generate-report-button:active {
     background: #2c2c2c;
+}
+
+.add-supply-button, .add-yandex-button {
+    background: #3b3b3b;
+    color: #ffffff;
+    padding: 0.85rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease, box-shadow 0.2s ease;
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.add-supply-button:hover {
+    background: #565656;
+    box-shadow: 0 4px 10px rgba(33, 33, 33, 0.6);
+}
+
+.add-supply-button:active {
+    background: #181818;
+}
+
+.supply-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* Расстояние между селектором и QR-кодом */
+}
+
+.remove-supply-button {
+    background: none;
+    border: none;
+    color: #d9534f;
+    font-size: 1.5rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.remove-supply-button:hover {
+    color: #b71c1c;
 }
