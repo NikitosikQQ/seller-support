@@ -24,15 +24,23 @@ public class PostingPreparationService {
     private final ArticlePromoInfoService articlePromoInfoService;
 
     public void preparePostingResult(List<PostingInfoModel> postingInfoModels) {
-        List<ArticlePromoInfoEntity> articlePromoInfos = articlePromoInfoService.findAll();
-        postingInfoModels.stream()
-                .map(PostingInfoModel::getProduct)
-                .forEach(product -> {
-                    int currentQuantity = product.getQuantity();
-                    product.setQuantity(currentQuantity * getRealQuantity(product, articlePromoInfos));
-                    product.setAreaInMeters(getAreaInMeter(product));
-                    product.setPricePerSquareMeter(getPricePerSquareMeter(product));
-                });
+        try {
+            log.info("Данные для расчета отчета по отгрузкам: {} ", postingInfoModels);
+            List<ArticlePromoInfoEntity> articlePromoInfos = articlePromoInfoService.findAll();
+            postingInfoModels.stream()
+                    .map(PostingInfoModel::getProduct)
+                    .forEach(product -> {
+                        int currentQuantity = product.getQuantity();
+                        product.setQuantity(currentQuantity * getRealQuantity(product, articlePromoInfos));
+                        product.setAreaInMeters(getAreaInMeter(product));
+                        product.setPricePerSquareMeter(getPricePerSquareMeter(product));
+                    });
+
+        } catch (Exception e) {
+            log.error("Возникла ошибка при расчете отчета по отгрузкам: {}. STACK-TRACE: {}",
+                    e.getMessage(), e.getStackTrace(), e);
+            throw e;
+        }
     }
 
     public List<PostingInfoModel> sortPostingsByMarketplaceAndColorNumber(List<PostingInfoModel> postings) {
