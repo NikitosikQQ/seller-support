@@ -24,23 +24,16 @@ public class PostingPreparationService {
     private final ArticlePromoInfoService articlePromoInfoService;
 
     public void preparePostingResult(List<PostingInfoModel> postingInfoModels) {
-        try {
-            log.info("Данные для расчета отчета по отгрузкам: {} ", postingInfoModels);
-            List<ArticlePromoInfoEntity> articlePromoInfos = articlePromoInfoService.findAll();
-            postingInfoModels.stream()
-                    .map(PostingInfoModel::getProduct)
-                    .forEach(product -> {
-                        int currentQuantity = product.getQuantity();
-                        product.setQuantity(currentQuantity * getRealQuantity(product, articlePromoInfos));
-                        product.setAreaInMeters(getAreaInMeter(product));
-                        product.setPricePerSquareMeter(getPricePerSquareMeter(product));
-                    });
-
-        } catch (Exception e) {
-            log.error("Возникла ошибка при расчете отчета по отгрузкам: {}. STACK-TRACE: {}",
-                    e.getMessage(), e.getStackTrace(), e);
-            throw e;
-        }
+        log.info("Данные для расчета отчета по отгрузкам: {} ", postingInfoModels);
+        List<ArticlePromoInfoEntity> articlePromoInfos = articlePromoInfoService.findAll();
+        postingInfoModels.stream()
+                .map(PostingInfoModel::getProduct)
+                .forEach(product -> {
+                    int currentQuantity = product.getQuantity();
+                    product.setQuantity(currentQuantity * getRealQuantity(product, articlePromoInfos));
+                    product.setAreaInMeters(getAreaInMeter(product));
+                    product.setPricePerSquareMeter(getPricePerSquareMeter(product));
+                });
     }
 
     public List<PostingInfoModel> sortPostingsByMarketplaceAndColorNumber(List<PostingInfoModel> postings) {
@@ -97,9 +90,15 @@ public class PostingPreparationService {
     }
 
     private BigDecimal getPricePerSquareMeter(ProductModel product) {
-        BigDecimal totalPrice = product.getTotalPrice();
-        BigDecimal areaInMeters = product.getAreaInMeters();
-        return totalPrice.divide(areaInMeters, 0, RoundingMode.HALF_UP);
+        try {
+            BigDecimal totalPrice = product.getTotalPrice();
+            BigDecimal areaInMeters = product.getAreaInMeters();
+            return totalPrice.divide(areaInMeters, 0, RoundingMode.HALF_UP);
+        } catch (Exception e) {
+            log.error("Ошибка при вычислении цены за квадратный метр для продукта {}, ошибка: {}",
+                    product, e.getMessage());
+            throw e;
+        }
     }
 
     public Map<MaterialEntity, List<ArticlePromoInfoEntity>> getMaterialArticlesMap() {
