@@ -24,6 +24,7 @@ public class PostingPreparationService {
     private final ArticlePromoInfoService articlePromoInfoService;
 
     public void preparePostingResult(List<PostingInfoModel> postingInfoModels) {
+        log.info("Данные для расчета отчета по отгрузкам: {} ", postingInfoModels);
         List<ArticlePromoInfoEntity> articlePromoInfos = articlePromoInfoService.findAll();
         postingInfoModels.stream()
                 .map(PostingInfoModel::getProduct)
@@ -89,9 +90,15 @@ public class PostingPreparationService {
     }
 
     private BigDecimal getPricePerSquareMeter(ProductModel product) {
-        BigDecimal totalPrice = product.getTotalPrice();
-        BigDecimal areaInMeters = product.getAreaInMeters();
-        return totalPrice.divide(areaInMeters, 0, RoundingMode.HALF_UP);
+        try {
+            BigDecimal totalPrice = product.getTotalPrice();
+            BigDecimal areaInMeters = product.getAreaInMeters();
+            return totalPrice.divide(areaInMeters, 0, RoundingMode.HALF_UP);
+        } catch (Exception e) {
+            log.error("Ошибка при вычислении цены за квадратный метр для продукта {}, ошибка: {}",
+                    product, e.getMessage());
+            throw e;
+        }
     }
 
     public Map<MaterialEntity, List<ArticlePromoInfoEntity>> getMaterialArticlesMap() {
