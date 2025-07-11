@@ -35,6 +35,7 @@ public class PostingExcelReportGenerator {
     private static final String LDSP_RASPIL_SHOP_TITLE_NAME = "ЛДСП-РАСПИЛ";
     private static final String OTHER_MATERIALS_TITLE = "Остальное";
     private static final String POSTINGS_WITH_WRONG_ARTICLE_TITLE = "Некорректные артикулы";
+    private static final String POSTINGS_WITH_WRONG_BOX_TITLE = "Некорректные грузоместа";
 
     private static final int COLUMN_NUMBER_OF_SUMMARY_TABLE = 13;
 
@@ -76,6 +77,7 @@ public class PostingExcelReportGenerator {
 
     public byte[] createNewPostingFile(List<PostingInfoModel> postings,
                                        List<PostingInfoModel> wrongPostings,
+                                       List<PostingInfoModel> wrongBoxPostings,
                                        Map<MaterialEntity, List<ArticlePromoInfoEntity>> materialArticlesMap) {
         if (Objects.isNull(postings) || postings.isEmpty()) {
             return null;
@@ -105,7 +107,10 @@ public class PostingExcelReportGenerator {
             }
             fillSheetBySummary(wb, summaryOfMaterials, isNotFullReport);
             if (Objects.nonNull(wrongPostings) && !wrongPostings.isEmpty()) {
-                fillSheetByWrongPostings(wb, wrongPostings, nextRowIndex);
+                nextRowIndex = fillSheetByWrongPostings(wb, wrongPostings, nextRowIndex);
+            }
+            if (Objects.nonNull(wrongBoxPostings) && !wrongBoxPostings.isEmpty()) {
+                fillSheetByWrongBoxPostings(wb, wrongBoxPostings, nextRowIndex);
             }
             setColumnWidths(wb.getSheet(SHEET_NAME));
             wb.write(outputStream);
@@ -233,7 +238,7 @@ public class PostingExcelReportGenerator {
         return rowIndex + 2;
     }
 
-    private void fillSheetByWrongPostings(Workbook wb, List<PostingInfoModel> wrongPostings, int nextRowIndex) {
+    private int fillSheetByWrongPostings(Workbook wb, List<PostingInfoModel> wrongPostings, int nextRowIndex) {
         Sheet sheet = wb.getSheet(SHEET_NAME);
         nextRowIndex = createRowTitle(wb, nextRowIndex, POSTINGS_WITH_WRONG_ARTICLE_TITLE);
         for (PostingInfoModel posting : wrongPostings) {
@@ -243,8 +248,20 @@ public class PostingExcelReportGenerator {
             row.createCell(2).setCellValue(String.format("Артикул: %s; Название магазина: %s",
                     posting.getProduct().getArticle(), posting.getShopName()));
         }
+        return nextRowIndex;
     }
 
+    private void fillSheetByWrongBoxPostings(Workbook wb, List<PostingInfoModel> wrongBoxPostings, int nextRowIndex) {
+        Sheet sheet = wb.getSheet(SHEET_NAME);
+        nextRowIndex = createRowTitle(wb, nextRowIndex, POSTINGS_WITH_WRONG_BOX_TITLE);
+        for (PostingInfoModel posting : wrongBoxPostings) {
+            Row row = sheet.createRow(nextRowIndex++);
+            row.createCell(0).setCellValue(posting.getPostingNumber());
+            row.createCell(1).setCellValue(posting.getPalletNumber());
+            row.createCell(2).setCellValue(String.format("Артикул: %s; Название магазина: %s",
+                    posting.getProduct().getArticle(), posting.getShopName()));
+        }
+    }
 
     private List<PostingInfoModel> filterPostingsByShop(List<PostingInfoModel> postings, String shopName) {
         return postings.stream()

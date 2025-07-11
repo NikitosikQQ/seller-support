@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import ru.seller_support.assignment.adapter.marketplace.MarketplaceAdapter;
 import ru.seller_support.assignment.adapter.marketplace.yandexmarket.client.YandexMarketClient;
 import ru.seller_support.assignment.adapter.marketplace.yandexmarket.common.YandexMarketConstants;
-import ru.seller_support.assignment.adapter.marketplace.yandexmarket.dto.inner.Item;
 import ru.seller_support.assignment.adapter.marketplace.yandexmarket.dto.inner.Order;
 import ru.seller_support.assignment.adapter.marketplace.yandexmarket.dto.inner.Shipment;
 import ru.seller_support.assignment.adapter.marketplace.yandexmarket.dto.request.GetShipmentsRequest;
@@ -37,6 +36,7 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
 
     private final YandexMarketClient client;
     private final YandexStickerDownloader stickerDownloader;
+    private final YandexMarketOrderSplitter orderSplitter;
     private final YandexMarketAdapterMapper mapper;
 
     @Override
@@ -63,7 +63,7 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
         List<Long> orderIds = shipments.getFirst().getOrderIds();
         GetOrdersByIdsResponse response = client.getOrdersByIds(shop.getApiKey(), shop.getClientId(), orderIds);
         List<Order> originalOrders = response.getOrders();
-        List<Order> splittedOrders = splitOrders(originalOrders);
+        List<Order> splittedOrders = orderSplitter.splitOrders(originalOrders);
 
         log.info("Успешно получены отправления для {} в количестве {}", shop.getName(), originalOrders.size());
 
@@ -113,25 +113,6 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
         }
     }
 
-    private List<Order> splitOrders(List<Order> orders) {
-        List<Order> result = new ArrayList<>();
-
-        for (Order order : orders) {
-            if (order.getItems().size() <= 1) {
-                result.add(order);
-            } else {
-                for (Item item : order.getItems()) {
-                    Order newOrder = order.toBuilder()
-                            .items(Collections.singletonList(item))
-                            .build();
-                    result.add(newOrder);
-                }
-            }
-        }
-
-        return result;
-    }
-
     private GetShipmentsRequest buildGetShipmentsRequest(GetPostingsModel request) {
         return GetShipmentsRequest.builder()
                 .dateFrom(CommonUtils.formatInstantToString(
@@ -145,6 +126,7 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
 
     private PrepareStickersRequest buildPrepareStickersRequest(List<String> orderIds, ShopEntity shop) {
         List<Long> ids = orderIds.stream()
+                .map(this::removeDashAndAfter)
                 .map(Long::valueOf)
                 .toList();
 
@@ -152,5 +134,10 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
                 .orderIds(ids)
                 .businessId(shop.getBusinessId())
                 .build();
+    }
+
+    private String removeDashAndAfter(String input) {
+        int dashIndex = input.indexOf('-');
+        return dashIndex == -1 ? input : input.substring(0, dashIndex);
     }
 }

@@ -16,5 +16,6 @@ public class YandexMarketConstants {
 
     public static class ShipmentStatus {
         public static final String OUTBOUND_READY_FOR_CONFIRMATION = "OUTBOUND_READY_FOR_CONFIRMATION";
+        public static final String OUTBOUND_CREATED = "OUTBOUND_READY_FOR_CONFIRMATION";
     }
 }

@@ -1,5 +1,6 @@
 package ru.seller_support.assignment.adapter.marketplace.yandexmarket.dto.inner;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
@@ -14,7 +15,11 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Order {
-    private Long id;
+    private String id;
     private String creationDate;
     private List<Item> items;
+    private Delivery delivery;
+
+    @JsonIgnore
+    private boolean wrongBox;
 }

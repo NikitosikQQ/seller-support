@@ -23,6 +23,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -50,8 +51,9 @@ public class MarketplaceProcessor {
         GetPostingsModel getPostingsModel = prepareGetPostingModel(request);
 
         List<PostingInfoModel> allPostings = getPostingInfoModelByShopAsync(shops, getPostingsModel, executor);
-        List<PostingInfoModel> wrongPostings = filterPostingsByWrong(allPostings, true);
-        List<PostingInfoModel> correctPostings = filterPostingsByWrong(allPostings, false);
+        List<PostingInfoModel> wrongPostings = filterPostingsByWrong(allPostings, true, false);
+        List<PostingInfoModel> wrongBoxPostings = filterPostingsByWrongBox(allPostings);
+        List<PostingInfoModel> correctPostings = filterPostingsByWrong(allPostings, false, true);
 
         log.info("Успешно получены отправления в количестве {}, из них ошибочных артикулов {}", allPostings.size(),
                 wrongPostings.size());
@@ -65,7 +67,7 @@ public class MarketplaceProcessor {
 
         Map<MaterialEntity, List<ArticlePromoInfoEntity>> articles = postingPreparationService.getMaterialArticlesMap();
 
-        byte[] excelBytes = postingExcelReportGenerator.createNewPostingFile(correctPostings, wrongPostings, articles);
+        byte[] excelBytes = postingExcelReportGenerator.createNewPostingFile(correctPostings, wrongPostings, wrongBoxPostings, articles);
         String excelName = CommonUtils.getFormattedStringWithInstant(EXCEL_NAME_PATTERN, now);
 
         byte[] pdfBytes = FileUtils.mergePdfFiles(pdfRawPackagesBytes);
@@ -81,10 +83,17 @@ public class MarketplaceProcessor {
         return zip;
     }
 
-    private List<PostingInfoModel> filterPostingsByWrong(List<PostingInfoModel> postings, boolean needWrong) {
+    private List<PostingInfoModel> filterPostingsByWrongBox(List<PostingInfoModel> postings) {
         return postings.stream()
-                .filter(post -> needWrong == post.getProduct().getWrongArticle())
+                .filter(post -> post.getProduct().getWrongBox().equals(Boolean.TRUE))
                 .toList();
+    }
+
+    private List<PostingInfoModel> filterPostingsByWrong(List<PostingInfoModel> postings, boolean needWrong, boolean filterWrongBox) {
+        Stream<PostingInfoModel> stream = postings.stream().filter(post -> needWrong == post.getProduct().getWrongArticle());
+        return filterWrongBox
+                ? stream.filter(post ->  post.getProduct().getWrongBox().equals(Boolean.FALSE)).toList()
+                : stream.toList();
     }
 
     private List<PostingInfoModel> getPostingInfoModelByShopAsync(List<ShopEntity> shops,
@@ -134,7 +143,7 @@ public class MarketplaceProcessor {
             return allResultsFuture.get();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(String.format("Ошибка при попытке асинхронно запросить этикетки по маркетплейсам %s",
-                    e.getMessage()));
+                    e.getMessage()), e);
         }
     }
 

@@ -52,9 +52,10 @@ public interface YandexMarketAdapterMapper {
     @Mapping(target = "width", source = "item.offerId", qualifiedByName = "width")
     @Mapping(target = "promoName", source = "item.offerId", qualifiedByName = "promoName")
     @Mapping(target = "comment", source = "item.offerId", qualifiedByName = "comment")
+    @Mapping(target = "wrongBox", source = "wrongBox")
     @Mapping(target = "areaInMeters", ignore = true)
     @Mapping(target = "pricePerSquareMeter", ignore = true)
-    ProductModel toProductModel(Item item);
+    ProductModel toProductModel(Item item, boolean wrongBox);
 
     @Named("color")
     default String getColor(String article) {
@@ -155,7 +156,7 @@ public interface YandexMarketAdapterMapper {
                     "Количество артикулов в отправлении %s магазина %s не равна 1",
                     order.getId(), shop.getName()));
         }
-        return toProductModel(order.getItems().getFirst());
+        return toProductModel(order.getItems().getFirst(), order.isWrongBox());
     }
 
     default ProductModel getWrongProduct(Order order, ShopEntity shop) {
@@ -167,6 +168,7 @@ public interface YandexMarketAdapterMapper {
         return ProductModel.builder()
                 .article(order.getItems().getFirst().getOfferId())
                 .wrongArticle(true)
+                .wrongBox(order.isWrongBox())
                 .build();
     }
 }

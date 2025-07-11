@@ -29,4 +29,7 @@ public class ProductModel {
 
     @Builder.Default
     private Boolean wrongArticle = false;
+
+    @Builder.Default
+    private Boolean wrongBox = false;
 }
