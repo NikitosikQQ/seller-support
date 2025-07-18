@@ -6,6 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.seller_support.assignment.adapter.postgres.entity.ArticlePromoInfoEntity;
+import ru.seller_support.assignment.controller.dto.CommentConditionsDto;
 import ru.seller_support.assignment.controller.dto.request.CommentDeleteRequest;
 import ru.seller_support.assignment.controller.dto.request.CommentSaveRequest;
 import ru.seller_support.assignment.controller.dto.request.CommentUpdateRequest;
@@ -38,14 +39,19 @@ public class CommentController {
                         .id(comment.getId())
                         .value(comment.getValue())
                         .conditions(mapper.toListConditionForCommentDto(comment.getConditions()))
-                        .conditionFields(FieldForCondition.getFieldsForCondition().stream().map(FieldForCondition::getViewValue).toList())
-                        .conditionOperators(ConditionOperator.getOperators().stream().map(ConditionOperator::getValue).toList())
-                        .logicGroupValues(GroupLogic.getGroupLogicSymbols().stream().map(GroupLogic::getValue).toList())
                         .articlesName(comment.getArticles().stream().map(ArticlePromoInfoEntity::getName).collect(Collectors.toSet()))
                         .build())
                 .toList();
     }
 
+    @GetMapping(path = "/conditions", produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommentConditionsDto getCommentConditions() {
+        return CommentConditionsDto.builder()
+                .conditionFields(FieldForCondition.getFieldsForCondition().stream().map(FieldForCondition::getViewValue).toList())
+                .conditionOperators(ConditionOperator.getOperators().stream().map(ConditionOperator::getValue).toList())
+                .logicGroupValues(GroupLogic.getGroupLogicSymbols().stream().map(GroupLogic::getValue).toList())
+                .build();
+    }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public void saveComment(@RequestBody @Valid CommentSaveRequest request) {

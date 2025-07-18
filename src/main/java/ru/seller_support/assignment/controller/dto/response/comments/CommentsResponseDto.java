@@ -17,10 +17,6 @@ public class CommentsResponseDto {
     private List<ConditionForCommentDto> conditions;
     private String value;
     private Set<String> articlesName;
-    private List<String> logicGroupValues;
-    private List<String> conditionOperators;
-    private List<String> conditionFields;
-
 
     @Data
     @Builder(toBuilder = true)

@@ -25,6 +25,26 @@ export async function fetchComments(needTable) {
     }
 }
 
+export async function fetchCommentConditions() {
+    var token = checkTokenExpirationAndGet();
+    try {
+        const response = await fetch('/api/v1/comments/conditions', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        if (!response.ok) {
+            const data = response.json
+            alert('Ошибка: ' + data.message);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Ошибка при получении настроек условий по комментариям:', error);
+    }
+}
+
 export async function fetchDeleteComment(id) {
     var token = checkTokenExpirationAndGet();
     try {
@@ -130,8 +150,8 @@ export async function openCreateCommentModal() {
     const headerForm = document.createElement('h3');
     headerForm.textContent = 'Создание комментария';
 
-    const commentData = await fetchComments(false);
     const articlesData = await fetchArticles(false);
+    const commentConditions = await fetchCommentConditions();
 
     const commentValueInput = document.createElement('input');
     commentValueInput.type = 'text';
@@ -143,9 +163,9 @@ export async function openCreateCommentModal() {
     const logicRowContainer = document.createElement('div');
     logicRowContainer.classList.add('smart-logic-row');
 
-    const logicSymbols = commentData[0].logicGroupValues
-    const conditionFields = commentData[0].conditionFields
-    const conditionOperators = commentData[0].conditionOperators
+    const logicSymbols = commentConditions.logicGroupValues
+    const conditionFields = commentConditions.conditionFields
+    const conditionOperators = commentConditions.conditionOperators
 
     const groupLogicInput = createAutocompleteInput('Тип логической группировки условий', logicSymbols);
 
@@ -337,12 +357,12 @@ export async function openEditCommentModal(comment) {
     const headerForm = document.createElement('h3');
     headerForm.textContent = 'Редактирование комментария';
 
-    const commentData = await fetchComments(false);
     const articlesData = await fetchArticles(false);
+    const commentConditions = await fetchCommentConditions();
 
-    const logicSymbols = commentData[0].logicGroupValues;
-    const conditionFields = commentData[0].conditionFields;
-    const conditionOperators = commentData[0].conditionOperators;
+    const logicSymbols = commentConditions.logicGroupValues;
+    const conditionFields = commentConditions.conditionFields;
+    const conditionOperators = commentConditions.conditionOperators;
 
     const commentValueInput = document.createElement('input');
     commentValueInput.type = 'text';
