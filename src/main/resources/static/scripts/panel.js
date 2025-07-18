@@ -3,6 +3,7 @@ import {fetchShops} from './shops-panel.js';
 import {openModal} from './reports-panel.js'
 import {fetchArticles} from "./article-panel.js";
 import {fetchMaterials} from "./material-panel.js";
+import {fetchComments} from "./comment-panel.js";
 
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -30,6 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('reports-section').addEventListener('click', () => loadSection('user'));
     document.getElementById('articles-section').addEventListener('click', () => loadSection('articles'));
     document.getElementById('materials-section').addEventListener('click', () => loadSection('materials'));
+    document.getElementById('comments-section').addEventListener('click', () => loadSection('comments'));
 
     document.getElementById('logout-btn').addEventListener('click', () => {
         localStorage.removeItem('token');
@@ -47,9 +49,11 @@ async function loadSection(section) {
     } else if (section === 'shops') {
         await fetchShops();
     } else if (section === 'articles') {
-        await fetchArticles();
+        await fetchArticles(true);
     } else if (section === 'materials') {
         await fetchMaterials(true);
+    } else if (section === 'comments') {
+        await fetchComments(true);
     }
 }
 
@@ -60,6 +64,7 @@ function showAdminMenu() {
     document.getElementById('shops-section').style.display = 'block';
     document.getElementById('articles-section').style.display = 'block';
     document.getElementById('materials-section').style.display = 'block'
+    document.getElementById('comments-section').style.display = 'block';
     openReportsMenu();
 
 }
@@ -71,6 +76,7 @@ function showUserMenu() {
     document.getElementById('articles-section').style.display = 'none'; // Скрыть раздел артикулы
     document.getElementById('materials-section').style.display = 'none'; // Скрыть раздел артикулы
     document.getElementById('reports-section').style.display = 'block'; // Показать только "Отчеты"
+    document.getElementById('comments-section').style.display = 'none';
     openReportsMenu();
 }
 
@@ -81,6 +87,7 @@ function showManagerMenu() {
     document.getElementById('articles-section').style.display = 'block';
     document.getElementById('materials-section').style.display = 'block';
     document.getElementById('reports-section').style.display = 'block';
+    document.getElementById('comments-section').style.display = 'block';
     openReportsMenu();
 }
 

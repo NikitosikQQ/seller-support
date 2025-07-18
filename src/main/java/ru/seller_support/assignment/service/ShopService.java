@@ -39,17 +39,15 @@ public class ShopService {
         shopRepository.save(shop);
     }
 
+    @Transactional
     public List<ShopEntity> findAllByMarketplace(String marketplaceName) {
         Marketplace marketplace = Marketplace.valueOf(marketplaceName);
-        return shopRepository.findAllByMarketplace(marketplace).stream()
-                .peek(shop -> shop.setApiKey(encryptService.decrypt(shop.getApiKey())))
-                .toList();
+        return shopRepository.findAllByMarketplace(marketplace);
     }
 
+    @Transactional
     public List<ShopEntity> findAll() {
-        return shopRepository.findAllByActive(true).stream()
-                .peek(shop -> shop.setApiKey(encryptService.decrypt(shop.getApiKey())))
-                .toList();
+        return shopRepository.findAllByActive(true);
     }
 
     public List<String> getAllMarketplaces() {
@@ -58,10 +56,12 @@ public class ShopService {
                 .toList();
     }
 
+    @Transactional
     public void delete(DeleteShopRequest request) {
         shopRepository.deleteById(request.getId());
     }
 
+    @Transactional
     public void updateShop(ShopChangeRequest request) {
         ShopEntity shop = shopRepository.findById(request.getId())
                 .orElseThrow(() ->

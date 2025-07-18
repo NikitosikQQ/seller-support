@@ -1,6 +1,7 @@
 package ru.seller_support.assignment.controller.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
@@ -16,4 +17,10 @@ public class MaterialSaveRequest {
     String separatorName;
 
     String sortingPostingBy;
+
+    @NotNull(message = "не должен быть пустым")
+    Boolean useInChpuTemplate;
+
+    String chpuMaterialName;
+    String chpuArticleNumber;
 }

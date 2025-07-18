@@ -12,6 +12,7 @@ import ru.seller_support.assignment.domain.GetPostingsModel;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
 import ru.seller_support.assignment.exception.PostingGenerationException;
+import ru.seller_support.assignment.service.comment.CommentService;
 import ru.seller_support.assignment.util.CommonUtils;
 import ru.seller_support.assignment.util.FileUtils;
 
@@ -38,6 +39,8 @@ public class MarketplaceProcessor {
     private final ShopService shopService;
     private final PostingExcelReportGenerator postingExcelReportGenerator;
     private final PostingPreparationService postingPreparationService;
+    private final ChpuTemplateExcelGenerator chpuTemplateExcelGenerator;
+    private final CommentService commentService;
 
     public byte[] getNewPostings(GeneratePostingsReportRequest request) {
         Instant now = Instant.now();
@@ -58,6 +61,10 @@ public class MarketplaceProcessor {
         log.info("Успешно получены отправления в количестве {}, из них ошибочных артикулов {}", allPostings.size(),
                 wrongPostings.size());
 
+
+        commentService.addCommentsIfNecessary(correctPostings);
+        log.info("Успешно отредактированы комментарии по артикулам");
+
         List<byte[]> pdfRawPackagesBytes = getPackagesOfPostingsAsync(shops, allPostings, executor);
         log.info("Успешно получены этикетки в количестве {}", allPostings.size());
 
@@ -70,10 +77,12 @@ public class MarketplaceProcessor {
         byte[] excelBytes = postingExcelReportGenerator.createNewPostingFile(correctPostings, wrongPostings, wrongBoxPostings, articles);
         String excelName = CommonUtils.getFormattedStringWithInstant(EXCEL_NAME_PATTERN, now);
 
+        Map<String, byte[]> chpuTemplates = chpuTemplateExcelGenerator.createChpuTemplates(correctPostings);
+
         byte[] pdfBytes = FileUtils.mergePdfFiles(pdfRawPackagesBytes);
         String pdfFileName = CommonUtils.getFormattedStringWithInstant(PDF_NAME_PATTERN, now);
 
-        byte[] zip = FileUtils.createZip(excelBytes, excelName, pdfBytes, pdfFileName);
+        byte[] zip = FileUtils.createZip(excelBytes, excelName, pdfBytes, pdfFileName, chpuTemplates);
         if (Objects.isNull(zip)) {
             throw new PostingGenerationException(String.format(
                     "Нет отгружаемых отправлений на период с %s по %s",
@@ -92,7 +101,7 @@ public class MarketplaceProcessor {
     private List<PostingInfoModel> filterPostingsByWrong(List<PostingInfoModel> postings, boolean needWrong, boolean filterWrongBox) {
         Stream<PostingInfoModel> stream = postings.stream().filter(post -> needWrong == post.getProduct().getWrongArticle());
         return filterWrongBox
-                ? stream.filter(post ->  post.getProduct().getWrongBox().equals(Boolean.FALSE)).toList()
+                ? stream.filter(post -> post.getProduct().getWrongBox().equals(Boolean.FALSE)).toList()
                 : stream.toList();
     }
 

@@ -44,6 +44,7 @@ public interface WildberriesAdapterMapper {
     @Mapping(target = "colorNumber", source = "order.article", qualifiedByName = "colorNumber")
     @Mapping(target = "length", source = "order.article", qualifiedByName = "length")
     @Mapping(target = "width", source = "order.article", qualifiedByName = "width")
+    @Mapping(target = "thickness", source = "order.article", qualifiedByName = "thickness")
     @Mapping(target = "promoName", source = "order.article", qualifiedByName = "promoName")
     @Mapping(target = "comment", source = "order.article", qualifiedByName = "comment")
     @Mapping(target = "areaInMeters", ignore = true)
@@ -86,6 +87,17 @@ public interface WildberriesAdapterMapper {
     default Integer getWidth(String article) {
         try {
             return Integer.parseInt(article.split(ARTICLE_SEPARATOR)[4]);
+        } catch (Exception e) {
+            throw new ArticleMappingException(String.format("Не удалось сконвертировать артикул из WB %s : %s",
+                    article,
+                    e.getMessage()));
+        }
+    }
+
+    @Named("thickness")
+    default Integer getThickness(String article) {
+        try {
+            return Integer.parseInt(article.split(ARTICLE_SEPARATOR)[5]);
         } catch (Exception e) {
             throw new ArticleMappingException(String.format("Не удалось сконвертировать артикул из WB %s : %s",
                     article,

@@ -230,6 +230,11 @@ export function openCreateUserModal() {
     saveButton.classList.add('edit-button');
     saveButton.type = 'submit';
 
+    const buttonGroup = document.createElement('div');
+    buttonGroup.classList.add('button-group');
+    buttonGroup.appendChild(saveButton);
+    buttonGroup.appendChild(cancelButton);
+
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
 
@@ -275,8 +280,7 @@ export function openCreateUserModal() {
     form.appendChild(passwordInput);
     form.appendChild(rolesLabel);
     form.appendChild(rolesContainer);
-    form.appendChild(saveButton);
-    form.appendChild(cancelButton);
+    form.appendChild(buttonGroup);
 
     modalContent.appendChild(closeButton);
     modalContent.appendChild(form);
@@ -349,6 +353,11 @@ export function openEditUserModal(user) {
     saveButton.classList.add('edit-button');
     saveButton.type = 'submit';
 
+    const buttonGroup = document.createElement('div');
+    buttonGroup.classList.add('button-group');
+    buttonGroup.appendChild(saveButton);
+    buttonGroup.appendChild(cancelButton);
+
     form.addEventListener('submit', (event) => {
         event.preventDefault();
 
@@ -370,8 +379,7 @@ export function openEditUserModal(user) {
     form.appendChild(usernameInput);
     form.appendChild(rolesLabel);
     form.appendChild(rolesContainer);
-    form.appendChild(saveButton);
-    form.appendChild(cancelButton);
+    form.appendChild(buttonGroup);
 
     modalContent.appendChild(closeButton);
     modalContent.appendChild(form);

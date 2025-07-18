@@ -50,6 +50,7 @@ public interface YandexMarketAdapterMapper {
     @Mapping(target = "colorNumber", source = "item.offerId", qualifiedByName = "colorNumber")
     @Mapping(target = "length", source = "item.offerId", qualifiedByName = "length")
     @Mapping(target = "width", source = "item.offerId", qualifiedByName = "width")
+    @Mapping(target = "thickness", source = "item.offerId", qualifiedByName = "thickness")
     @Mapping(target = "promoName", source = "item.offerId", qualifiedByName = "promoName")
     @Mapping(target = "comment", source = "item.offerId", qualifiedByName = "comment")
     @Mapping(target = "wrongBox", source = "wrongBox")
@@ -81,6 +82,17 @@ public interface YandexMarketAdapterMapper {
     default Integer getLength(String article) {
         try {
             return Integer.parseInt(article.split(ARTICLE_SEPARATOR)[3]);
+        } catch (Exception e) {
+            throw new ArticleMappingException(String.format("Не удалось сконвертировать артикул из Yandex %s : %s",
+                    article,
+                    e.getMessage()));
+        }
+    }
+
+    @Named("thickness")
+    default Integer getThickness(String article) {
+        try {
+            return Integer.parseInt(article.split(ARTICLE_SEPARATOR)[5]);
         } catch (Exception e) {
             throw new ArticleMappingException(String.format("Не удалось сконвертировать артикул из Yandex %s : %s",
                     article,

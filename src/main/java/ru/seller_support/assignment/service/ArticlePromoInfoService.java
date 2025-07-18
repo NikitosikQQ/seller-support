@@ -12,8 +12,8 @@ import ru.seller_support.assignment.controller.dto.request.ArticleSaveRequest;
 import ru.seller_support.assignment.controller.dto.request.ArticleUpdateRequest;
 import ru.seller_support.assignment.exception.ArticleChangeException;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,8 +29,15 @@ public class ArticlePromoInfoService {
                         String.format("Артикул с номером акции/цены %s не найден", name)));
     }
 
+    @Transactional(readOnly = true)
     public List<ArticlePromoInfoEntity> findAll() {
-        return repository.findAll();
+        List<ArticlePromoInfoEntity> articles = repository.findAllByOrderByTypeAsc();
+        return fillChpuMaterialIfExists(articles);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ArticlePromoInfoEntity> findAllWithComments() {
+        return repository.findAllByCommentsIsNotNullOrderByTypeAsc();
     }
 
     @Transactional
@@ -44,6 +51,10 @@ public class ArticlePromoInfoService {
         article.setName(request.getName());
         article.setType(request.getType());
         article.setQuantityPerSku(request.getQuantityPerSku());
+        if (Objects.nonNull(request.getChpuMaterialName())) {
+            MaterialEntity chpuMaterial = materialService.findByName(request.getChpuMaterialName());
+            article.setChpuMaterialId(chpuMaterial.getId());
+        }
 
         repository.save(article);
     }
@@ -65,6 +76,12 @@ public class ArticlePromoInfoService {
         if (Objects.nonNull(request.getQuantityPerSku())) {
             article.setQuantityPerSku(request.getQuantityPerSku());
         }
+        if (Objects.nonNull(request.getChpuMaterialName())) {
+            MaterialEntity material = materialService.findByName(request.getChpuMaterialName());
+            article.setChpuMaterialId(material.getId());
+        } else {
+            article.setChpuMaterialId(null);
+        }
         repository.save(article);
     }
 
@@ -82,5 +99,27 @@ public class ArticlePromoInfoService {
     public void delete(ArticleDeleteRequest request) {
         ArticlePromoInfoEntity article = findByName(request.getName());
         repository.delete(article);
+    }
+
+    @Transactional
+    public Set<ArticlePromoInfoEntity> findAllByNames(Set<String> articlesName) {
+        return repository.findAllByNameIn(articlesName);
+    }
+
+    private List<ArticlePromoInfoEntity> fillChpuMaterialIfExists(List<ArticlePromoInfoEntity> articlePromoInfos) {
+        Map<UUID, List<ArticlePromoInfoEntity>> articlesWithChpuMaterial = articlePromoInfos.stream()
+                .filter(article -> Objects.nonNull(article.getChpuMaterialId()))
+                .collect(Collectors.groupingBy(ArticlePromoInfoEntity::getChpuMaterialId));
+        List<MaterialEntity> chpuMaterials = materialService.findAllByIds(articlesWithChpuMaterial.keySet());
+
+        for (MaterialEntity material : chpuMaterials) {
+            UUID materialId = material.getId();
+            List<ArticlePromoInfoEntity> linkedArticles = articlesWithChpuMaterial.get(materialId);
+            if (linkedArticles != null) {
+                linkedArticles.forEach(article -> article.setChpuMaterial(material));
+            }
+        }
+
+        return articlePromoInfos;
     }
 }

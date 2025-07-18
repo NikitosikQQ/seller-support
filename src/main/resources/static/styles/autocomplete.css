@@ -1,0 +1,36 @@
+.input-autocomplete {
+    position: relative;
+}
+
+.input-autocomplete input {
+    padding: 0.85rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #fafafa;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.autocomplete-items {
+    padding: 0.85rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #fafafa;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.autocomplete-items div {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.autocomplete-items div:hover {
+    background-color: #f1f1f1;
+}

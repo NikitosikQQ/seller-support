@@ -34,6 +34,15 @@ public class MaterialEntity implements Comparable<MaterialEntity> {
     @Column(name = "sorting_posting_by")
     private SortingPostingByParam sortingPostingBy;
 
+    @Column(name = "use_in_chpu_template")
+    private Boolean useInChpuTemplate;
+
+    @Column(name = "chpu_material_name")
+    private String chpuMaterialName;
+
+    @Column(name = "chpu_article_number")
+    private String chpuArticleNumber;
+
     public boolean isNotSeparate() {
         return Objects.isNull(separatorName);
     }

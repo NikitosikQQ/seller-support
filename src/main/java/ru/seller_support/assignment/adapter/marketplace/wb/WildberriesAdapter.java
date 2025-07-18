@@ -16,6 +16,7 @@ import ru.seller_support.assignment.domain.GetPostingsModel;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
 import ru.seller_support.assignment.exception.ArticleMappingException;
+import ru.seller_support.assignment.service.TextEncryptService;
 import ru.seller_support.assignment.util.FileUtils;
 
 import java.util.*;
@@ -29,6 +30,7 @@ public class WildberriesAdapter extends MarketplaceAdapter {
 
     private final WildberriesClient client;
     private final WildberriesAdapterMapper mapper;
+    private final TextEncryptService encryptService;
 
     @Override
     public Marketplace getMarketplace() {
@@ -48,7 +50,7 @@ public class WildberriesAdapter extends MarketplaceAdapter {
             return Collections.emptyList();
         }
 
-        GetOrdersBySupplyIdResponse response = client.getOrdersBySupplyId(shop.getApiKey(), supplyId);
+        GetOrdersBySupplyIdResponse response = client.getOrdersBySupplyId(encryptService.decrypt(shop.getApiKey()), supplyId);
         log.info("Успешно получены отправления для {} в количестве {}", shop.getName(), response.getOrders().size());
 
         return response.getOrders()
@@ -79,7 +81,7 @@ public class WildberriesAdapter extends MarketplaceAdapter {
 
             GetStickersRequest request = buildGetStickersRequest(batch);
 
-            GetStickersResponse partResponse = client.getStickers(shop.getApiKey(),
+            GetStickersResponse partResponse = client.getStickers(encryptService.decrypt(shop.getApiKey()),
                     WildberriesConstants.StickerTypes.SVG,
                     WildberriesConstants.StickersSize.MIN_WIDTH,
                     WildberriesConstants.StickersSize.MIN_HEIGHT,

@@ -1,7 +1,7 @@
 import {checkTokenExpirationAndGet} from "./panel.js";
 import {fetchMaterials} from "./material-panel.js";
 
-export async function fetchArticles() {
+export async function fetchArticles(needTable) {
     var token = checkTokenExpirationAndGet();
     try {
         const response = await fetch('/api/v1/articles', {
@@ -16,7 +16,10 @@ export async function fetchArticles() {
             alert('Ошибка: ' + data.message);
         }
         const articles = await response.json();
-        renderArticlesTable(articles);
+        if (needTable) {
+            renderArticlesTable(articles);
+        }
+        return articles;
     } catch (error) {
         console.error('Ошибка при получении артикулов:', error);
     }
@@ -38,7 +41,7 @@ export async function fetchDeleteArticle(name) {
             alert('Ошибка: ' + data.message);
         } else {
             alert('Артикул успешно удален');
-            fetchArticles();
+            fetchArticles(true);
         }
     } catch (error) {
         console.error('Ошибка при удалении артикулов:', error);
@@ -156,18 +159,41 @@ export function openCreateArticleModal() {
     materialDropdown.name = 'material';
     materialDropdown.required = true;
 
+    const chpuMaterialNameLabel = document.createElement('label');
+    chpuMaterialNameLabel.textContent = 'Материал для ЧПУ';
+    const chpuMaterialDropdown = document.createElement('select');
+    chpuMaterialDropdown.classList.add('material-dropdown'); // Класс для стилей
+    chpuMaterialDropdown.name = 'material';
+    chpuMaterialDropdown.required = false;
+
 // Заполняем выпадающий список материалами
     fetchMaterials(false).then((materials) => {
+        const emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = "Отсутствует";
+        emptyOption.selected = true;
+        chpuMaterialDropdown.appendChild(emptyOption);
+
         materials.forEach((material) => {
-            const option = document.createElement('option');
-            option.value = material.name;
-            option.textContent = material.name; // Отображаемое имя материала
-            materialDropdown.appendChild(option);
+            // option для обычного материала
+            const option1 = document.createElement('option');
+            option1.value = material.name;
+            option1.textContent = material.name;
+            materialDropdown.appendChild(option1);
+
+            // option для ЧПУ-материала
+            const option2 = document.createElement('option');
+            option2.value = material.name;
+            option2.textContent = material.name;
+            option2.selected = false
+            chpuMaterialDropdown.appendChild(option2);
         });
     }).catch((error) => {
         console.error('Ошибка при загрузке материалов:', error);
         alert('Не удалось загрузить список материалов.');
     });
+    const buttonGroup = document.createElement('div');
+    buttonGroup.classList.add('button-group');
 
     const cancelButton = document.createElement('button');
     cancelButton.textContent = 'Отменить';
@@ -180,10 +206,14 @@ export function openCreateArticleModal() {
     saveButton.classList.add('edit-button');
     saveButton.type = 'submit';
 
+    buttonGroup.appendChild(saveButton);
+    buttonGroup.appendChild(cancelButton);
+
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
 
         const selectedMaterial = materialDropdown.value; // Получаем выбранный материал
+        const selectedChpuMaterial = chpuMaterialDropdown.value; // Получаем выбранный материал для ЧПУ
 
         if (!selectedMaterial) {
             alert('Пожалуйста, выберите материал.');
@@ -194,7 +224,8 @@ export function openCreateArticleModal() {
             name: articleNameInput.value.trim(),
             type: articleTypeInput.value,
             quantityPerSku: quantityPerSkuInput.value,
-            materialName: selectedMaterial
+            materialName: selectedMaterial,
+            chpuMaterialName: selectedChpuMaterial === '' ? null : selectedChpuMaterial
         };
 
         try {
@@ -214,11 +245,11 @@ export function openCreateArticleModal() {
             } else {
                 alert('Артикул успешно создан');
                 modal.remove();
-                fetchArticles();
+                fetchArticles(true);
             }
         } catch (error) {
-            console.error('Ошибка при создании пользователя:', error);
-            alert('Не удалось создать пользователя');
+            console.error('Ошибка при создании артикула:', error);
+            alert('Не удалось создать артикула');
         }
     });
 
@@ -231,8 +262,9 @@ export function openCreateArticleModal() {
     form.appendChild(quantityPerSkuInput);
     form.appendChild(materialNameLabel);
     form.appendChild(materialDropdown);
-    form.appendChild(saveButton);
-    form.appendChild(cancelButton);
+    form.appendChild(chpuMaterialNameLabel);
+    form.appendChild(chpuMaterialDropdown);
+    form.appendChild(buttonGroup)
 
     modalContent.appendChild(closeButton);
     modalContent.appendChild(form);
@@ -288,16 +320,42 @@ export function openEditArticleModal(article) {
     materialDropdown.name = 'material';
     materialDropdown.required = true;
 
+    const chpuMaterialNameLabel = document.createElement('label');
+    chpuMaterialNameLabel.textContent = 'Материал для ЧПУ';
+    const chpuMaterialDropdown = document.createElement('select');
+    chpuMaterialDropdown.classList.add('material-dropdown'); // Класс для стилей
+    chpuMaterialDropdown.name = 'material';
+    chpuMaterialDropdown.required = false;
+
     // Заполняем выпадающий список материалами
     fetchMaterials(false).then((materials) => {
+        // Добавляем пустой <option> для ЧПУ-материала (null)
+        const emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = "Отсутствует";
+        if (article.chpuMaterialName == null) {
+            emptyOption.selected = true;
+        }
+        chpuMaterialDropdown.appendChild(emptyOption);
+
         materials.forEach((material) => {
-            const option = document.createElement('option');
-            option.value = material.name;
-            option.textContent = material.name;
+            // option для обычного материала
+            const option1 = document.createElement('option');
+            option1.value = material.name;
+            option1.textContent = material.name;
             if (material.name === article.materialName) {
-                option.selected = true;
+                option1.selected = true;
             }
-            materialDropdown.appendChild(option);
+            materialDropdown.appendChild(option1);
+
+            // option для ЧПУ-материала
+            const option2 = document.createElement('option');
+            option2.value = material.name;
+            option2.textContent = material.name;
+            if (material.name === article.chpuMaterialName) {
+                option2.selected = true;
+            }
+            chpuMaterialDropdown.appendChild(option2);
         });
     }).catch((error) => {
         console.error('Ошибка при загрузке материалов:', error);
@@ -315,10 +373,16 @@ export function openEditArticleModal(article) {
     saveButton.classList.add('edit-button');
     saveButton.type = 'submit';
 
+    const buttonGroup = document.createElement('div');
+    buttonGroup.classList.add('button-group');
+    buttonGroup.appendChild(saveButton);
+    buttonGroup.appendChild(cancelButton);
+
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
 
         const selectedMaterial = materialDropdown.value; // Получаем выбранный материал
+        const selectedChpuMaterial = chpuMaterialDropdown.value; // Получаем выбранный материал для ЧПУ
 
         if (!selectedMaterial) {
             alert('Пожалуйста, выберите материал.');
@@ -330,7 +394,8 @@ export function openEditArticleModal(article) {
             updatedName: articleNameInput.value === article.name ? null :articleNameInput.value.trim(),
             type: articleTypeInput.value,
             quantityPerSku: quantityPerSkuInput.value,
-            materialName: selectedMaterial
+            materialName: selectedMaterial,
+            chpuMaterialName: selectedChpuMaterial === '' ? null : selectedChpuMaterial
         };
 
         try {
@@ -350,7 +415,7 @@ export function openEditArticleModal(article) {
             } else {
                 alert('Артикул успешно обновлен');
                 modal.remove();
-                fetchArticles();
+                fetchArticles(true);
             }
         } catch (error) {
             console.error('Ошибка при обновлении артикула:', error);
@@ -366,8 +431,9 @@ export function openEditArticleModal(article) {
     form.appendChild(quantityPerSkuInput);
     form.appendChild(materialNameLabel);
     form.appendChild(materialDropdown);
-    form.appendChild(saveButton);
-    form.appendChild(cancelButton);
+    form.appendChild(chpuMaterialNameLabel);
+    form.appendChild(chpuMaterialDropdown);
+    form.appendChild(buttonGroup);
 
     modalContent.appendChild(closeButton);
     modalContent.appendChild(form);

@@ -22,4 +22,6 @@ public class ArticleUpdateRequest {
 
     @Min(1)
     Integer quantityPerSku;
+
+    String chpuMaterialName;
 }

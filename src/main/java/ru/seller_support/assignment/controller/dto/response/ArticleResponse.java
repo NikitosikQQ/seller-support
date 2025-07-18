@@ -12,4 +12,5 @@ public class ArticleResponse {
     private String type;
     private Integer quantityPerSku;
     private String materialName;
+    private String chpuMaterialName;
 }

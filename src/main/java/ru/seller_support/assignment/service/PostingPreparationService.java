@@ -24,7 +24,6 @@ public class PostingPreparationService {
     private final ArticlePromoInfoService articlePromoInfoService;
 
     public void preparePostingResult(List<PostingInfoModel> postingInfoModels) {
-        log.info("Данные для расчета отчета по отгрузкам: {} ", postingInfoModels);
         List<ArticlePromoInfoEntity> articlePromoInfos = articlePromoInfoService.findAll();
         postingInfoModels.stream()
                 .map(PostingInfoModel::getProduct)
@@ -107,6 +106,17 @@ public class PostingPreparationService {
                 .collect(Collectors.groupingBy(ArticlePromoInfoEntity::getMaterial, TreeMap::new, Collectors.toList()));
     }
 
+    public Map<MaterialEntity, List<ArticlePromoInfoEntity>> getChpuMaterialArticlesMap() {
+        return articlePromoInfoService.findAll().stream()
+                .filter(article -> Objects.isNull(article.getChpuMaterial())
+                        ? article.getMaterial().getUseInChpuTemplate()
+                        : article.getChpuMaterial().getUseInChpuTemplate())
+                .collect(Collectors.groupingBy(
+                        article -> Objects.isNull(article.getChpuMaterial()) ? article.getMaterial() : article.getChpuMaterial(),
+                        TreeMap::new,
+                        Collectors.toList()));
+    }
+
     private BigDecimal calculateTotalArea(List<PostingInfoModel> materialPostings) {
         return materialPostings.stream()
                 .map(PostingInfoModel::getProduct)
@@ -138,5 +148,14 @@ public class PostingPreparationService {
         return articles.stream()
                 .map(ArticlePromoInfoEntity::getName)
                 .collect(Collectors.toSet());
+    }
+
+    public Map<Integer, List<PostingInfoModel>> groupByThicknessAndArticles(List<PostingInfoModel> postings,
+                                                                            List<ArticlePromoInfoEntity> articlePromoInfos) {
+        Set<String> promoNames = extractPromoNames(articlePromoInfos);
+        return postings.stream()
+                .filter(post -> promoNames.contains(post.getProduct().getPromoName()))
+                .collect(Collectors.groupingBy(it -> it.getProduct().getThickness()));
+
     }
 }

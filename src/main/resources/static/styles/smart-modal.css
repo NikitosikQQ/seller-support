@@ -1,0 +1,241 @@
+/* Подложка */
+.smart-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    z-index: 999;
+}
+
+/* Контейнер модалки */
+.smart-modal-content {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 16px;
+    max-width: 720px;
+    width: 100%;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    position: relative;
+    animation: slideUpFade 0.25s ease-out;
+}
+
+@keyframes slideUpFade {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Заголовок */
+.smart-modal-content h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: #222;
+    font-weight: 600;
+}
+
+/* Закрытие */
+.smart-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    border: none;
+    background: none;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.smart-modal-close:hover {
+    color: #333;
+}
+
+/* Инпуты */
+.smart-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    margin-bottom: 1rem;
+    box-sizing: border-box;
+}
+
+.smart-input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+.smart-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.smart-select-wrapper select {
+    width: 100%;
+    padding: 0.75rem 1.5rem 0.75rem 1rem; /* добавляем отступ справа под стрелочку */
+    font-size: 1rem;
+    border-radius: 10px;
+    border: 1.5px solid #ccc;
+    background: white;
+    appearance: none; /* отключаем дефолтный стиль */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.smart-select-wrapper select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
+    outline: none;
+}
+
+/* Кастомная стрелочка справа */
+.smart-select-wrapper::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #333;
+    transform: translateY(-50%);
+}
+
+/* При фокусе стрелочка меняет цвет */
+.smart-select-wrapper select:focus + .smart-select-arrow,
+.smart-select-wrapper:focus-within::after {
+    border-top-color: #007bff;
+}
+
+/* Условия */
+.smart-condition-container {
+    margin-bottom: 1.5rem;
+}
+
+/* Кнопки */
+.smart-button {
+    padding: 0.6rem 1.25rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+}
+
+.smart-button.save {
+    background: #28a745;
+    color: white;
+}
+
+.smart-button.save:hover {
+    background: #218838;
+}
+
+.smart-button.cancel {
+    background: #e74c3c;
+    color: white;
+}
+
+.smart-button.cancel:hover {
+    background: #c0392b;
+}
+
+.smart-button.add {
+    background: #007bff;
+    color: white;
+    margin-top: 0.75rem;
+}
+
+.smart-button.add:hover {
+    background: #0062d2;
+}
+
+/* Артикулы */
+.smart-article-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.smart-article-tag {
+    display: flex;
+    align-items: center;
+    background: #f3f3f3;
+    padding: 0.4rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    border: 1px solid #ccc;
+}
+
+.smart-article-tag button {
+    margin-left: 0.5rem;
+    background: none;
+    border: none;
+    font-size: 1rem;
+    color: #999;
+    cursor: pointer;
+}
+
+.smart-article-tag button:hover {
+    color: #000;
+}
+
+/* Кнопки группы */
+.smart-button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.smart-logic-row {
+    display: flex;
+    align-items: flex-end; /* прижимает к нижнему краю для ровной линии */
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.smart-condition-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.25rem 0; /* вертикальный отступ внутри строки */
+    margin-bottom: 1rem;
+}
+
+
+/* Контейнер, чтобы ограничить высоту выпадающего списка */
+.smart-select-scrollable {
+    max-height: 150px;
+    overflow-y: auto; /* Скроллинг по вертикали */
+}
+
+.smart-condition-row input,
+.smart-condition-row .smart-select-wrapper,
+.smart-condition-row .smart-button-delete {
+    height: 40px;
+    padding: 0 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+}

@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -29,5 +31,14 @@ public class ArticlePromoInfoEntity {
     @ManyToOne
     @JoinColumn(name = "material_id", nullable = false)
     private MaterialEntity material;
+
+    @Column(name = "chpu_material_id")
+    private UUID chpuMaterialId;
+
+    @ManyToMany(mappedBy = "articles")
+    private Set<CommentEntity> comments = new HashSet<>();
+
+    @Transient
+    private MaterialEntity chpuMaterial;
 
 }

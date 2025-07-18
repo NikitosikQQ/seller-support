@@ -46,8 +46,8 @@ public class YandexMarketOrderSplitter {
             List<Item> items = order.getItems();
             int countOfItems = items.stream().map(Item::getCount).reduce(0, Integer::sum);
             if (countOfItems % boxes.size() != 0) {
-                throw new ArithmeticException(String.format("Кол-во разных типов товаров, а именно %s, в заказе %s не делится без остатка на кол-во грузомест %s",
-                        items.size(), order.getId(), boxes.size()));
+                throw new ArithmeticException(String.format("Кол-во товаров с разными артикулами, а именно %s, в заказе %s не делится без остатка на кол-во грузомест %s",
+                        countOfItems, order.getId(), boxes.size()));
             }
             int currentBoxIndex = 0;
             for (int i = 0; i < items.size(); i++) {

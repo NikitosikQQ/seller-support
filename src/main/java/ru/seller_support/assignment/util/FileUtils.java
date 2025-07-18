@@ -15,6 +15,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -24,7 +25,8 @@ import java.util.zip.ZipOutputStream;
 public class FileUtils {
 
     public static byte[] createZip(byte[] excelBytes, String excelFileName,
-                                   byte[] pdfBytes, String pdfName) {
+                                   byte[] pdfBytes, String pdfName,
+                                   Map<String, byte[]> chpuTemplates) {
         if (Objects.isNull(excelBytes) || Objects.isNull(pdfBytes)) {
             return null;
         }
@@ -39,6 +41,17 @@ public class FileUtils {
             zos.putNextEntry(pdfEntry);
             zos.write(pdfBytes);
             zos.closeEntry();
+
+            chpuTemplates.forEach((key, value) -> {
+                try {
+                    ZipEntry templateEntry = new ZipEntry(key);
+                    zos.putNextEntry(templateEntry);
+                    zos.write(value);
+                    zos.closeEntry();
+                } catch (IOException e) {
+                    throw new RuntimeException("Ошибка при сохранении в архив шаблонов раскроя", e);
+                }
+            });
 
             zos.finish();
         } catch (Exception e) {

@@ -20,6 +20,7 @@ import ru.seller_support.assignment.domain.GetPostingsModel;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
 import ru.seller_support.assignment.exception.ArticleMappingException;
+import ru.seller_support.assignment.service.TextEncryptService;
 import ru.seller_support.assignment.util.CommonUtils;
 
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
     private final YandexStickerDownloader stickerDownloader;
     private final YandexMarketOrderSplitter orderSplitter;
     private final YandexMarketAdapterMapper mapper;
+    private final TextEncryptService encryptService;
 
     @Override
     public Marketplace getMarketplace() {
@@ -51,7 +53,7 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
         }
         GetShipmentsRequest getShipmentsRequest = buildGetShipmentsRequest(request);
         GetShipmentsResponse shipmentsResponse = client.getShipments(
-                shop.getApiKey(), shop.getClientId(), getShipmentsRequest);
+                encryptService.decrypt(shop.getApiKey()), shop.getClientId(), getShipmentsRequest);
         if (Objects.isNull(shipmentsResponse) || shipmentsResponse.getResult().getShipments().isEmpty()) {
             return Collections.emptyList();
         }
@@ -61,7 +63,7 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
                     shop.getName(), request.getYandexTo()));
         }
         List<Long> orderIds = shipments.getFirst().getOrderIds();
-        GetOrdersByIdsResponse response = client.getOrdersByIds(shop.getApiKey(), shop.getClientId(), orderIds);
+        GetOrdersByIdsResponse response = client.getOrdersByIds(encryptService.decrypt(shop.getApiKey()), shop.getClientId(), orderIds);
         List<Order> originalOrders = response.getOrders();
         List<Order> splittedOrders = orderSplitter.splitOrders(originalOrders);
 
@@ -91,7 +93,7 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
 
             PrepareStickersRequest request = buildPrepareStickersRequest(batch, shop);
 
-            PrepareStickersResponse prepareResponse = client.prepareStickers(shop.getApiKey(), request);
+            PrepareStickersResponse prepareResponse = client.prepareStickers(encryptService.decrypt(shop.getApiKey()), request);
 
             byte[] pdfBytes = downloadStickers(prepareResponse, shop);
             packages.add(pdfBytes);
@@ -104,7 +106,7 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
     private byte[] downloadStickers(PrepareStickersResponse info, ShopEntity shop) {
         try {
             Thread.sleep(info.getResult().getEstimatedGenerationTime());
-            GetStickersByReportIdResponse stickers = client.getStickers(shop.getApiKey(), info.getResult().getReportId());
+            GetStickersByReportIdResponse stickers = client.getStickers(encryptService.decrypt(shop.getApiKey()), info.getResult().getReportId());
             return stickerDownloader.downloadStickersFromUrl(stickers.getResult().getFile());
         } catch (Exception e) {
             throw new RuntimeException(String.format(

@@ -19,6 +19,7 @@ public class ProductModel {
     private Integer quantity;
     private Integer length;
     private Integer width;
+    private Integer thickness;
     private BigDecimal totalPrice;
     private BigDecimal areaInMeters;
     private BigDecimal pricePerSquareMeter;

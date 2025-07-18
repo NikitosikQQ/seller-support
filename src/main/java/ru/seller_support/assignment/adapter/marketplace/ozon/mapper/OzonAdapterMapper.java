@@ -41,6 +41,7 @@ public interface OzonAdapterMapper {
     @Mapping(target = "colorNumber", source = "product.offerId", qualifiedByName = "colorNumber")
     @Mapping(target = "length", source = "product.offerId", qualifiedByName = "length")
     @Mapping(target = "width", source = "product.offerId", qualifiedByName = "width")
+    @Mapping(target = "thickness", source = "product.offerId", qualifiedByName = "thickness")
     @Mapping(target = "promoName", source = "product.offerId", qualifiedByName = "promoName")
     @Mapping(target = "comment", source = "product.offerId", qualifiedByName = "comment")
     @Mapping(target = "areaInMeters", ignore = true)
@@ -85,6 +86,17 @@ public interface OzonAdapterMapper {
         } catch (Exception e) {
             throw new ArticleMappingException(String.format("Не удалось сконвертировать артикул из озона %s : %s",
                     offerId,
+                    e.getMessage()));
+        }
+    }
+
+    @Named("thickness")
+    default Integer getThickness(String article) {
+        try {
+            return Integer.parseInt(article.split(ARTICLE_SEPARATOR)[5]);
+        } catch (Exception e) {
+            throw new ArticleMappingException(String.format("Не удалось сконвертировать артикул из озона %s : %s",
+                    article,
                     e.getMessage()));
         }
     }

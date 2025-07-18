@@ -17,6 +17,7 @@ import ru.seller_support.assignment.domain.GetPostingsModel;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
 import ru.seller_support.assignment.exception.ArticleMappingException;
+import ru.seller_support.assignment.service.TextEncryptService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,7 @@ public class OzonAdapter extends MarketplaceAdapter {
 
     private final OzonClient ozonClient;
     private final OzonAdapterMapper mapper;
+    private final TextEncryptService encryptService;
 
     @Override
     public Marketplace getMarketplace() {
@@ -43,11 +45,11 @@ public class OzonAdapter extends MarketplaceAdapter {
         GetUnfulfilledListRequest requestAcceptanceInProgress = buildGetPostingRequest(request, OzonСonstants.OzonStatus.ACCEPTANCE_IN_PROGRESS);
 
         GetUnfulfilledListResponse responseAwaitingDeliver = ozonClient.getUnfulfilledOrders(
-                shop.getApiKey(), shop.getClientId(), requestAwaitingDeliver);
+                encryptService.decrypt(shop.getApiKey()), shop.getClientId(), requestAwaitingDeliver);
         responses.add(responseAwaitingDeliver);
 
         GetUnfulfilledListResponse responseAcceptanceInProgress = ozonClient.getUnfulfilledOrders(
-                shop.getApiKey(), shop.getClientId(), requestAcceptanceInProgress);
+                encryptService.decrypt(shop.getApiKey()), shop.getClientId(), requestAcceptanceInProgress);
         responses.add(responseAcceptanceInProgress);
 
         List<Posting> postingResponse = responses.stream()
@@ -83,7 +85,7 @@ public class OzonAdapter extends MarketplaceAdapter {
 
             GetPackagesRequest request = buildGetPackagesRequest(batch);
 
-            byte[] partPackagesBytes = ozonClient.getPackages(shop.getApiKey(), shop.getClientId(), request);
+            byte[] partPackagesBytes = ozonClient.getPackages(encryptService.decrypt(shop.getApiKey()), shop.getClientId(), request);
             packages.add(partPackagesBytes);
         }
         log.info("Количество этикеток для магазина {} = {}", shop.getName(), postingNumbers.size());

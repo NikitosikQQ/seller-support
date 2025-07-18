@@ -2,6 +2,7 @@ package ru.seller_support.assignment.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/materials")
 @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+@Slf4j
 public class MaterialController {
 
     private final MaterialService materialService;
@@ -25,9 +27,13 @@ public class MaterialController {
     public List<MaterialResponse> getMaterials() {
         return materialService.findAll()
                 .stream().map(material -> MaterialResponse.builder()
+                        .id(material.getId())
                         .name(material.getName())
                         .separatorName(material.getSeparatorName())
                         .sortingPostingBy(material.getSortingPostingBy().getValue())
+                        .useInChpuTemplate(material.getUseInChpuTemplate())
+                        .chpuMaterialName(material.getChpuMaterialName())
+                        .chpuArticleNumber(material.getChpuArticleNumber())
                         .build())
                 .toList();
     }
@@ -45,6 +51,7 @@ public class MaterialController {
 
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public void updateArticle(@RequestBody @Valid MaterialUpdateRequest request) {
+        log.info("Пришел запрос: {}", request);
         materialService.update(request);
     }
 

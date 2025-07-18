@@ -20,4 +20,6 @@ public class ArticleSaveRequest {
 
     @Min(1)
     Integer quantityPerSku;
+
+    String chpuMaterialName;
 }

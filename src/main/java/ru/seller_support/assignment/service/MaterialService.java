@@ -12,9 +12,7 @@ import ru.seller_support.assignment.controller.dto.request.MaterialUpdateRequest
 import ru.seller_support.assignment.domain.enums.SortingPostingByParam;
 import ru.seller_support.assignment.exception.MaterialChangeException;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +28,11 @@ public class MaterialService {
     }
 
     public List<MaterialEntity> findAll() {
-        return repository.findAll();
+        return repository.findAllByOrderByNameAsc();
+    }
+
+    public List<MaterialEntity> findAllByIds(Collection<UUID> ids) {
+        return repository.findAllByIdIn(ids);
     }
 
     @Transactional
@@ -41,6 +43,9 @@ public class MaterialService {
         material.setName(request.getName());
         material.setSeparatorName(request.getSeparatorName());
         material.setSortingPostingBy(SortingPostingByParam.of(request.getSortingPostingBy()));
+        material.setUseInChpuTemplate(request.getUseInChpuTemplate());
+        material.setChpuMaterialName(request.getChpuMaterialName());
+        material.setChpuArticleNumber(request.getChpuArticleNumber());
 
         repository.save(material);
     }
@@ -54,6 +59,15 @@ public class MaterialService {
         }
         if (Objects.nonNull(request.getSortingPostingBy())) {
             material.setSortingPostingBy(SortingPostingByParam.of(request.getSortingPostingBy()));
+        }
+        if (Objects.nonNull(request.getUseInChpuTemplate())) {
+            material.setUseInChpuTemplate(request.getUseInChpuTemplate());
+        }
+        if (Objects.nonNull(request.getChpuMaterialName())) {
+            material.setChpuMaterialName(request.getChpuMaterialName());
+        }
+        if (Objects.nonNull(request.getChpuArticleNumber())) {
+            material.setChpuArticleNumber(request.getChpuArticleNumber());
         }
         material.setSeparatorName(request.getSeparatorName());
         repository.save(material);

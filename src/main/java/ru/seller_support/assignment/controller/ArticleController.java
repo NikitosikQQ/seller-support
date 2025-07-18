@@ -12,6 +12,7 @@ import ru.seller_support.assignment.controller.dto.response.ArticleResponse;
 import ru.seller_support.assignment.service.ArticlePromoInfoService;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,6 +30,9 @@ public class ArticleController {
                         .name(article.getName())
                         .type(article.getType())
                         .materialName(article.getMaterial().getName())
+                        .chpuMaterialName(Objects.nonNull(article.getChpuMaterial())
+                                ? article.getChpuMaterial().getName()
+                                : null)
                         .quantityPerSku(article.getQuantityPerSku())
                         .build())
                 .toList();

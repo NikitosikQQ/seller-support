@@ -380,3 +380,46 @@ modal-content .checkbox-group {
 .remove-supply-button:hover {
     color: #b71c1c;
 }
+
+/* Пример нового класса для контейнера с дополнительным блоком */
+.modal-content .additional-section {
+    padding: 1rem 0;
+    border-top: 1px solid #ddd;
+    margin-top: 1.5rem;
+}
+
+/* Новый стиль для текста внутри дополнительного блока */
+.modal-content .additional-section p {
+    font-size: 1rem;
+    color: #555;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+}
+
+/* Новый стиль для кнопки внутри дополнительного блока */
+.modal-content .additional-section .additional-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 0.7rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.modal-content .additional-section .additional-button:hover {
+    background-color: #0056b3;
+}
+
+.material-dropdown:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
+}
+
+/* Ограничение прокрутки на выпадающем списке */
+.material-scrollable {
+    max-height: 150px;
+    overflow-y: auto;
+}

@@ -92,9 +92,8 @@ public class PostingExcelReportGenerator {
             summaryOfMaterials = preparationService.calculateSummaryPerDay(postings);
         }
 
-        int nextRowIndex;
+        int nextRowIndex = 1;
         try (Workbook wb = initialWorkBook(isNotFullReport); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            nextRowIndex = fillSheetLDCPRaspil(wb, groupedPostings.get(Marketplace.OZON), isNotFullReport);
             for (Map.Entry<Marketplace, List<PostingInfoModel>> entry : groupedPostings.entrySet()) {
                 Marketplace marketplace = entry.getKey();
                 List<PostingInfoModel> mutablePostings = entry.getValue();

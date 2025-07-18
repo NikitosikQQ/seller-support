@@ -100,7 +100,7 @@ export function renderMaterialTable(materials) {
 
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
-    ['Наименование', 'Разделитель в отчете', 'Сортировка по', 'Действия'].forEach(text => {
+    ['Наименование', 'Разделитель в отчете', 'Сортировка по', "Используется в таблице раскроя", 'Действия'].forEach(text => {
         const th = document.createElement('th');
         th.textContent = text;
         headerRow.appendChild(th);
@@ -109,11 +109,16 @@ export function renderMaterialTable(materials) {
     table.appendChild(thead);
     const tbody = document.createElement('tbody');
     materials.forEach(material => {
+        var useInChpuTemplate = "Нет"
+        if(material.useInChpuTemplate) {
+            useInChpuTemplate = "Да"
+        }
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${material.name}</td>
             <td>${material.separatorName || ''}</td>
             <td>${material.sortingPostingBy}</td>
+            <td>${useInChpuTemplate}</td>
             <td>
                 <button class="edit-button">Изменить</button>
                 <button class="delete-button">Удалить</button>
@@ -169,6 +174,12 @@ export function openCreateMaterialModal() {
     sortingDropdown.name = 'material';
     sortingDropdown.required = true;
 
+    const useInChpuLabel = document.createElement('label');
+    useInChpuLabel.textContent = 'Использовать в раскрое ЧПУ';
+    const useInChpuCheckbox = document.createElement('input');
+    useInChpuCheckbox.type = 'checkbox';
+    useInChpuCheckbox.classList.add('check-box-chpu');
+
 // Заполняем выпадающий список материалами
     fetchSortingPostingBy().then((sortings) => {
         sortings.forEach((sorting) => {
@@ -182,6 +193,9 @@ export function openCreateMaterialModal() {
         alert('Не удалось загрузить список материалов.');
     });
 
+    const buttonGroup = document.createElement('div');
+    buttonGroup.classList.add('button-group');
+
     const cancelButton = document.createElement('button');
     cancelButton.textContent = 'Отменить';
     cancelButton.classList.add('delete-button');
@@ -193,6 +207,40 @@ export function openCreateMaterialModal() {
     saveButton.classList.add('edit-button');
     saveButton.type = 'submit';
 
+    buttonGroup.appendChild(saveButton);
+    buttonGroup.appendChild(cancelButton);
+
+    const chpuFieldsContainer = document.createElement('div');
+    chpuFieldsContainer.style.display = 'none'; // скрыто по умолчанию
+
+    const chpuNameLabel = document.createElement('label');
+    chpuNameLabel.textContent = 'Наименование материала ЧПУ';
+    const chpuNameInput = document.createElement('input');
+    chpuNameInput.type = 'text';
+    chpuNameInput.classList.add('input-not-role');
+
+    const chpuArticleLabel = document.createElement('label');
+    chpuArticleLabel.textContent = 'Номер артикула ЧПУ';
+    const chpuArticleInput = document.createElement('input');
+    chpuArticleInput.type = 'text';
+    chpuArticleInput.classList.add('input-not-role');
+
+    chpuFieldsContainer.appendChild(chpuNameLabel);
+    chpuFieldsContainer.appendChild(chpuNameInput);
+    chpuFieldsContainer.appendChild(chpuArticleLabel);
+    chpuFieldsContainer.appendChild(chpuArticleInput);
+
+// обработчик отображения
+    useInChpuCheckbox.addEventListener('change', () => {
+        if (useInChpuCheckbox.checked) {
+            chpuFieldsContainer.style.display = 'block';
+        } else {
+            chpuFieldsContainer.style.display = 'none';
+            chpuNameInput.value = '';
+            chpuArticleInput.value = '';
+        }
+    });
+
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
 
@@ -201,7 +249,10 @@ export function openCreateMaterialModal() {
         const newMaterial = {
             name: materialNameInput.value.trim(),
             separatorName: separatorNameInput.value === '' ? null : separatorNameInput.value,
-            sortingPostingBy: selectedSorting
+            sortingPostingBy: selectedSorting,
+            useInChpuTemplate: useInChpuCheckbox.checked,
+            chpuMaterialName: chpuNameInput.value.trim() || null,
+            chpuArticleNumber: chpuArticleInput.value.trim() || null
         };
 
         try {
@@ -235,8 +286,10 @@ export function openCreateMaterialModal() {
     form.appendChild(separatorNameInput);
     form.appendChild(sortingNameLabel);
     form.appendChild(sortingDropdown);
-    form.appendChild(saveButton);
-    form.appendChild(cancelButton);
+    form.appendChild(useInChpuCheckbox);
+    form.appendChild(useInChpuLabel);
+    form.appendChild(chpuFieldsContainer);
+    form.appendChild(buttonGroup);
 
     modalContent.appendChild(closeButton);
     modalContent.appendChild(form);
@@ -284,6 +337,13 @@ export function openEditMaterialModal(material) {
     sortingDropdown.name = 'material';
     sortingDropdown.required = true;
 
+    const useInChpuLabel = document.createElement('label');
+    useInChpuLabel.textContent = 'Использовать в раскрое ЧПУ';
+    const useInChpuCheckbox = document.createElement('input');
+    useInChpuCheckbox.type = 'checkbox';
+    useInChpuCheckbox.classList.add('check-box-chpu');
+    useInChpuCheckbox.checked = material.useInChpuTemplate
+
     // Заполняем выпадающий список материалами
     fetchSortingPostingBy().then((sortings) => {
         sortings.forEach((sorting) => {
@@ -300,6 +360,9 @@ export function openEditMaterialModal(material) {
         alert('Не удалось загрузить список сортировок.');
     });
 
+    const buttonGroup = document.createElement('div');
+    buttonGroup.classList.add('button-group');
+
     const cancelButton = document.createElement('button');
     cancelButton.textContent = 'Отменить';
     cancelButton.classList.add('delete-button');
@@ -311,6 +374,46 @@ export function openEditMaterialModal(material) {
     saveButton.classList.add('edit-button');
     saveButton.type = 'submit';
 
+    buttonGroup.appendChild(saveButton);
+    buttonGroup.appendChild(cancelButton);
+
+    const chpuFieldsContainer = document.createElement('div');
+    chpuFieldsContainer.style.display = 'none';// скрыто по умолчанию
+
+    if (useInChpuCheckbox.checked) {
+        chpuFieldsContainer.style.display = 'block';
+    }
+
+    const chpuNameLabel = document.createElement('label');
+    chpuNameLabel.textContent = 'Наименование материала ЧПУ';
+    const chpuNameInput = document.createElement('input');
+    chpuNameInput.type = 'text';
+    chpuNameInput.value = material.chpuMaterialName;
+    chpuNameInput.classList.add('input-not-role');
+
+    const chpuArticleLabel = document.createElement('label');
+    chpuArticleLabel.textContent = 'Номер артикула ЧПУ';
+    const chpuArticleInput = document.createElement('input');
+    chpuArticleInput.type = 'text';
+    chpuArticleInput.value = material.chpuArticleNumber;
+    chpuArticleInput.classList.add('input-not-role');
+
+    chpuFieldsContainer.appendChild(chpuNameLabel);
+    chpuFieldsContainer.appendChild(chpuNameInput);
+    chpuFieldsContainer.appendChild(chpuArticleLabel);
+    chpuFieldsContainer.appendChild(chpuArticleInput);
+
+// обработчик отображения
+    useInChpuCheckbox.addEventListener('change', () => {
+        if (useInChpuCheckbox.checked) {
+            chpuFieldsContainer.style.display = 'block';
+        } else {
+            chpuFieldsContainer.style.display = 'none';
+            chpuNameInput.value = material.chpuMaterialName;
+            chpuArticleInput.value = material.chpuArticleNumber;
+        }
+    });
+
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
 
@@ -321,6 +424,9 @@ export function openEditMaterialModal(material) {
             updatedName: materialNameInput.value === material.name ? null : materialNameInput.value.trim(),
             separatorName: materialSeparatorNameInput.value === '' ? null : materialSeparatorNameInput.value,
             sortingPostingBy: selectedSort,
+            useInChpuTemplate: useInChpuCheckbox.checked,
+            chpuMaterialName: chpuNameInput.value.trim() || null,
+            chpuArticleNumber: chpuArticleInput.value.trim() || null
         };
 
         try {
@@ -354,8 +460,10 @@ export function openEditMaterialModal(material) {
     form.appendChild(materialSeparatorNameInput);
     form.appendChild(sortingPostingByLabel);
     form.appendChild(sortingDropdown);
-    form.appendChild(saveButton);
-    form.appendChild(cancelButton);
+    form.appendChild(useInChpuCheckbox);
+    form.appendChild(useInChpuLabel);
+    form.appendChild(chpuFieldsContainer)
+    form.appendChild(buttonGroup);
 
     modalContent.appendChild(closeButton);
     modalContent.appendChild(form);

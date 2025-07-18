@@ -253,6 +253,11 @@ export function openCreateShopModal() {
     saveButton.classList.add('edit-button');
     saveButton.type = 'submit';
 
+    const buttonGroup = document.createElement('div');
+    buttonGroup.classList.add('button-group');
+    buttonGroup.appendChild(saveButton);
+    buttonGroup.appendChild(cancelButton);
+
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
 
@@ -310,8 +315,7 @@ export function openCreateShopModal() {
     form.appendChild(businessIdInput);
     form.appendChild(marketPlaceLabel);
     form.appendChild(marketplaceContainer);
-    form.appendChild(saveButton);
-    form.appendChild(cancelButton);
+    form.appendChild(buttonGroup)
 
     modalContent.appendChild(closeButton);
     modalContent.appendChild(form);
@@ -418,6 +422,11 @@ export function openEditShopModal(shop) {
     saveButton.classList.add('edit-button');
     saveButton.type = 'submit';
 
+    const buttonGroup = document.createElement('div');
+    buttonGroup.classList.add('button-group');
+    buttonGroup.appendChild(saveButton);
+    buttonGroup.appendChild(cancelButton);
+
     form.addEventListener('submit', (event) => {
         event.preventDefault();
 
@@ -455,8 +464,7 @@ export function openEditShopModal(shop) {
     form.appendChild(businessIdInput);
     form.appendChild(marketPlaceLabel);
     form.appendChild(marketplaceContainer);
-    form.appendChild(saveButton);
-    form.appendChild(cancelButton);
+    form.appendChild(buttonGroup);
 
     modalContent.appendChild(closeButton);
     modalContent.appendChild(form);
