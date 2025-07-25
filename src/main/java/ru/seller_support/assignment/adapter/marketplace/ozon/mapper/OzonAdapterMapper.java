@@ -15,7 +15,8 @@ import ru.seller_support.assignment.util.CommonUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
+        imports = CommonUtils.class)
 public interface OzonAdapterMapper {
 
     String ARTICLE_SEPARATOR = "/";
@@ -24,6 +25,7 @@ public interface OzonAdapterMapper {
     @Mapping(target = "palletNumber", source = "shop.palletNumber")
     @Mapping(target = "shopName", source = "shop.name")
     @Mapping(target = "product", expression = "java(getProduct(posting, shop))")
+    @Mapping(target = "inProcessAt", expression = "java(CommonUtils.toMoscowTime(posting.getInProcessAt()))")
     PostingInfoModel toPostingInfoModel(Posting posting,
                                         ShopEntity shop);
 

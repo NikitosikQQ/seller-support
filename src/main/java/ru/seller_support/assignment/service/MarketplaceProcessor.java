@@ -177,13 +177,14 @@ public class MarketplaceProcessor {
     }
 
     private GetPostingsModel prepareGetPostingModel(GeneratePostingsReportRequest request) {
-        Instant fromDate = CommonUtils.parseStringToInstant(request.getFrom());
-        Instant toDate = CommonUtils.parseStringToInstant(request.getTo());
+
+        Instant fromOzonDate = CommonUtils.parseStringToInstantOzon(request.getFrom(), true);
+        Instant toOzonDate = CommonUtils.parseStringToInstantOzon(request.getTo(), false);
         Instant toYandexDate = CommonUtils.parseStringToInstant(request.getYandexTo());
 
         return GetPostingsModel.builder()
-                .from(fromDate)
-                .to(toDate)
+                .from(fromOzonDate)
+                .to(toOzonDate)
                 .yandexTo(toYandexDate)
                 .wbSupplies(request.getSupplies())
                 .build();
