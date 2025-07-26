@@ -1,5 +1,6 @@
 package ru.seller_support.assignment.controller;
 
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.seller_support.assignment.controller.dto.request.GeneratePostingsReportRequest;
 import ru.seller_support.assignment.service.MarketplaceProcessor;
+
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/v1/reports")
@@ -26,6 +29,11 @@ public class ReportController {
     @PostMapping(value = "/postings", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<byte[]> test(@RequestBody GeneratePostingsReportRequest request) {
         log.info("Получен запрос на генерацию файлов по отправлениям на отгрузку: {}", request);
+
+        if (Objects.nonNull(request.getExcludeFromOzon()) && Objects.nonNull(request.getExcludeToOzon())
+                && request.getExcludeFromOzon().isAfter(request.getExcludeToOzon())) {
+            throw new ValidationException("Начало периода исключения заказов озон больше окончания периода");
+        }
         byte[] zip = marketplaceProcessor.getNewPostings(request);
 
         HttpHeaders headers = new HttpHeaders();
