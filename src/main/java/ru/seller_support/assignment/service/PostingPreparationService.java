@@ -8,9 +8,12 @@ import ru.seller_support.assignment.adapter.postgres.entity.MaterialEntity;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.ProductModel;
 import ru.seller_support.assignment.domain.SummaryOfMaterialModel;
+import ru.seller_support.assignment.domain.enums.Marketplace;
+import ru.seller_support.assignment.util.CommonUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -69,6 +72,25 @@ public class PostingPreparationService {
         }
 
         return summary;
+    }
+
+    public List<PostingInfoModel> excludeOzonPostingsByPeriod(List<PostingInfoModel> postings, Instant from, Instant to) {
+        if (Objects.isNull(from) || Objects.isNull(to)) {
+            return postings;
+        }
+
+        Instant excludeFromMsk = CommonUtils.toMoscowTime(from);
+        Instant excludeToMsk = CommonUtils.toMoscowTime(to);
+
+        return postings.stream()
+                .filter(posting -> {
+                    if (posting.getMarketplace() != Marketplace.OZON) {
+                        return true;
+                    }
+                    Instant inProcessAt = posting.getInProcessAt();
+                    return inProcessAt.isBefore(excludeFromMsk) || inProcessAt.isAfter(excludeToMsk);
+                })
+                .toList();
     }
 
     private Integer getRealQuantity(ProductModel product, List<ArticlePromoInfoEntity> articlePromoInfos) {

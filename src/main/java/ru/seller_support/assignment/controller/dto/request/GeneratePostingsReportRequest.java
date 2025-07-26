@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
+import java.time.Instant;
 import java.util.List;
 
 @Value
@@ -16,4 +17,7 @@ public class GeneratePostingsReportRequest {
     String to;
     String yandexTo;
     List<WbSupplyDetails> supplies;
+    Instant excludeFromOzon;
+    Instant excludeToOzon;
+
 }

@@ -2,7 +2,7 @@ import {checkTokenExpirationAndGet} from "./panel.js";
 
 const WILDBERRIES = 'WILDBERRIES';
 
-export async function getPosting(from, to, yandexTo, supplies, signal) {
+export async function getPosting(from, to, yandexTo, supplies, excludeFrom, excludeTo, signal) {
     const token = checkTokenExpirationAndGet();
     const response = await fetch(`/api/v1/reports/postings`, {
         method: 'POST',
@@ -15,7 +15,9 @@ export async function getPosting(from, to, yandexTo, supplies, signal) {
             from: from,
             to: to,
             yandexTo: yandexTo,
-            supplies: supplies
+            supplies: supplies,
+            excludeFromOzon: excludeFrom ? new Date(excludeFrom).toISOString() : null,
+            excludeToOzon: excludeTo ? new Date(excludeTo).toISOString() : null,
         })
     });
 
@@ -160,6 +162,36 @@ export function openModal() {
 
     yandexContainer.appendChild(addYandexButton);
 
+    const excludePeriodContainer = document.createElement('div');
+    excludePeriodContainer.className = 'yandex-container';
+
+    const addExcludePeriodButton = document.createElement('button');
+    addExcludePeriodButton.textContent = '+ добавить период для исключения заказов OZON';
+    addExcludePeriodButton.className = 'add-yandex-button';
+    addExcludePeriodButton.addEventListener('click', () => {
+        const fromLabel = document.createElement('label');
+        fromLabel.textContent = 'Начало периода для исключения заказов OZON:';
+        const fromInput = document.createElement('input');
+        fromInput.type = 'datetime-local';
+        fromInput.className = 'input-not-role';
+        fromInput.id = 'excludeFrom';
+
+        const toLabel = document.createElement('label');
+        toLabel.textContent = 'Конец периода для исключения заказов OZON:';
+        const toInput = document.createElement('input');
+        toInput.type = 'datetime-local';
+        toInput.className = 'input-not-role';
+        toInput.id = 'excludeTo';
+
+        excludePeriodContainer.innerHTML = '';
+        excludePeriodContainer.appendChild(fromLabel);
+        excludePeriodContainer.appendChild(fromInput);
+        excludePeriodContainer.appendChild(toLabel);
+        excludePeriodContainer.appendChild(toInput);
+    });
+
+    excludePeriodContainer.appendChild(addExcludePeriodButton);
+
     const generateButton = document.createElement('button');
     generateButton.textContent = 'Сформировать';
     generateButton.className = 'generate-report-button';
@@ -168,6 +200,12 @@ export function openModal() {
         const toDate = toDateInput.value;
         const yandexInput = document.getElementById('yandexTo');
         const yandexToDate = yandexInput ? yandexInput.value : null;
+
+        const excludeFromInput = document.getElementById('excludeFrom');
+        const excludeFromDateTime = excludeFromInput ? excludeFromInput.value : null;
+
+        const excludeToInput = document.getElementById('excludeTo');
+        const excludeToDateTime = excludeToInput ? excludeToInput.value : null;
 
         if (!fromDate || !toDate) {
             alert('Пожалуйста, заполните обе даты.');
@@ -206,6 +244,7 @@ export function openModal() {
         addSupplyButton.classList.add('hidden')
         addYandexButton.classList.add('hidden')
         generateButton.classList.add('hidden')
+        addExcludePeriodButton.classList.add('hidden')
 
         // Показываем лоадер
         loader.classList.remove('hidden');
@@ -213,7 +252,7 @@ export function openModal() {
 
         // Вызов функции для получения zip-архива
         try {
-            await getPosting(fromDate, toDate, yandexToDate, supplies, signal);
+            await getPosting(fromDate, toDate, yandexToDate, supplies, excludeFromDateTime, excludeToDateTime, signal);
             successMessage.classList.remove('hidden');
         } finally {
             // Убираем лоадер
@@ -227,6 +266,7 @@ export function openModal() {
     modalContent.appendChild(fromDateInput);
     modalContent.appendChild(toDateLabel);
     modalContent.appendChild(toDateInput);
+    modalContent.appendChild(excludePeriodContainer);
     modalContent.appendChild(yandexContainer);
     modalContent.appendChild(addSupplyButton);
     modalContent.appendChild(supplyContainer);

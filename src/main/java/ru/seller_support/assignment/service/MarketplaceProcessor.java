@@ -54,19 +54,20 @@ public class MarketplaceProcessor {
         GetPostingsModel getPostingsModel = prepareGetPostingModel(request);
 
         List<PostingInfoModel> allPostings = getPostingInfoModelByShopAsync(shops, getPostingsModel, executor);
-        List<PostingInfoModel> wrongPostings = filterPostingsByWrong(allPostings, true, false);
-        List<PostingInfoModel> wrongBoxPostings = filterPostingsByWrongBox(allPostings);
-        List<PostingInfoModel> correctPostings = filterPostingsByWrong(allPostings, false, true);
+        List<PostingInfoModel> filteringPostings = postingPreparationService.excludeOzonPostingsByPeriod(allPostings, request.getExcludeFromOzon(), request.getExcludeToOzon());
+        List<PostingInfoModel> wrongPostings = filterPostingsByWrong(filteringPostings, true, false);
+        List<PostingInfoModel> wrongBoxPostings = filterPostingsByWrongBox(filteringPostings);
+        List<PostingInfoModel> correctPostings = filterPostingsByWrong(filteringPostings, false, true);
 
-        log.info("Успешно получены отправления в количестве {}, из них ошибочных артикулов {}", allPostings.size(),
+        log.info("Успешно получены отправления в количестве {}, из них ошибочных артикулов {}", filteringPostings.size(),
                 wrongPostings.size());
 
 
         commentService.addCommentsIfNecessary(correctPostings);
         log.info("Успешно отредактированы комментарии по артикулам");
 
-        List<byte[]> pdfRawPackagesBytes = getPackagesOfPostingsAsync(shops, allPostings, executor);
-        log.info("Успешно получены этикетки в количестве {}", allPostings.size());
+        List<byte[]> pdfRawPackagesBytes = getPackagesOfPostingsAsync(shops, filteringPostings, executor);
+        log.info("Успешно получены этикетки в количестве {}", filteringPostings.size());
 
         executor.shutdown();
 

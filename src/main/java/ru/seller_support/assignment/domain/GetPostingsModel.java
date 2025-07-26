@@ -16,4 +16,6 @@ public class GetPostingsModel {
     private Instant to;
     private Instant yandexTo;
     private List<WbSupplyDetails> wbSupplies;
+    private Instant excludeFromOzon;
+    private Instant excludeToOzon;
 }
