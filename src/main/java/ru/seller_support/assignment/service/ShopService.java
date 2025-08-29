@@ -45,9 +45,14 @@ public class ShopService {
         return shopRepository.findAllByMarketplace(marketplace);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<ShopEntity> findAll() {
         return shopRepository.findAllByActive(true);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ShopEntity> findAllByMarketplaceActive(Marketplace marketplace) {
+        return shopRepository.findAllByMarketplaceAndActive(marketplace, true);
     }
 
     public List<String> getAllMarketplaces() {

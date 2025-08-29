@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.seller_support.assignment.controller.dto.request.GeneratePostingsReportRequest;
-import ru.seller_support.assignment.service.MarketplaceProcessor;
+import ru.seller_support.assignment.service.MarketplaceReportsProcessor;
 
 import java.util.Objects;
 
@@ -24,7 +24,7 @@ public class ReportController {
 
     private static final String ZIP_NAME = "Postings";
 
-    private final MarketplaceProcessor marketplaceProcessor;
+    private final MarketplaceReportsProcessor marketplaceReportsProcessor;
 
     @PostMapping(value = "/postings", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<byte[]> test(@RequestBody GeneratePostingsReportRequest request) {
@@ -34,7 +34,7 @@ public class ReportController {
                 && request.getExcludeFromOzon().isAfter(request.getExcludeToOzon())) {
             throw new ValidationException("Начало периода исключения заказов озон больше окончания периода");
         }
-        byte[] zip = marketplaceProcessor.getNewPostings(request);
+        byte[] zip = marketplaceReportsProcessor.getNewPostings(request);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDispositionFormData("attachment", ZIP_NAME);

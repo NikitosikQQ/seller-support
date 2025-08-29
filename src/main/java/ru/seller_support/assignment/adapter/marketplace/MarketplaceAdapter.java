@@ -14,4 +14,6 @@ public abstract class MarketplaceAdapter {
     public abstract List<PostingInfoModel> getNewPosting(ShopEntity shop, GetPostingsModel request);
 
     public abstract List<byte[]> getPackagesByPostingNumbers(ShopEntity shop, List<PostingInfoModel> postings);
+
+    public abstract void collectPostingsAwaitingPackaging(ShopEntity shop, List<PostingInfoModel> postings);
 }

@@ -27,7 +27,7 @@ import static ru.seller_support.assignment.util.CommonUtils.EMPTY_STRING;
 @Slf4j
 public class ChpuTemplateExcelGenerator {
 
-    private static final int MAX_COLUMNS = 11;
+    private static final int MAX_COLUMNS = 12;
 
     private static final String EXCEL_NAME_PATTERN = "Шаблон раскроя %s, толщина %s, номер цвета %s.xlsx";
     private static final String SHEET_NAME = "Шаблон раскроя";
@@ -134,5 +134,6 @@ public class ChpuTemplateExcelGenerator {
         row.createCell(9).setCellValue(lengthGreaterThanWidth ? product.getLength() : product.getWidth());
         row.createCell(10).setCellValue(lengthGreaterThanWidth ? product.getWidth() : product.getLength());
         row.createCell(11).setCellValue(product.getQuantity());
+        row.createCell(12).setCellValue(posting.getPostingNumber());
     }
 }

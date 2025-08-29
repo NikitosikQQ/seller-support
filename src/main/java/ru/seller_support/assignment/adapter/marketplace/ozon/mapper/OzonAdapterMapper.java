@@ -46,6 +46,7 @@ public interface OzonAdapterMapper {
     @Mapping(target = "thickness", source = "product.offerId", qualifiedByName = "thickness")
     @Mapping(target = "promoName", source = "product.offerId", qualifiedByName = "promoName")
     @Mapping(target = "comment", source = "product.offerId", qualifiedByName = "comment")
+    @Mapping(target = "marketplaceProductId", source = "sku")
     @Mapping(target = "areaInMeters", ignore = true)
     @Mapping(target = "pricePerSquareMeter", ignore = true)
     ProductModel toProductModel(Product product);

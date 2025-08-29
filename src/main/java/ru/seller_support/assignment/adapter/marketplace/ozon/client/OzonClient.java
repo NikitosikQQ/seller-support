@@ -8,8 +8,10 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import ru.seller_support.assignment.adapter.marketplace.ozon.dto.request.CollectPostingsRequest;
 import ru.seller_support.assignment.adapter.marketplace.ozon.dto.request.GetPackagesRequest;
 import ru.seller_support.assignment.adapter.marketplace.ozon.dto.request.GetUnfulfilledListRequest;
+import ru.seller_support.assignment.adapter.marketplace.ozon.dto.response.CollectPostingsResponse;
 import ru.seller_support.assignment.adapter.marketplace.ozon.dto.response.GetUnfulfilledListResponse;
 
 @FeignClient(name = "ozonClient", url = "${app.integrations.marketplaces.ozon.rootUrl}")
@@ -26,4 +28,10 @@ public interface OzonClient {
     byte[] getPackages(@RequestHeader("Api-Key") String apiKey,
                        @RequestHeader("Client-Id") String clientId,
                        @RequestBody GetPackagesRequest request);
+
+    @Retryable(value = {FeignException.class}, maxAttempts = 3, backoff = @Backoff(delay = 500))
+    @PostMapping(value = "/v4/posting/fbs/ship")
+    CollectPostingsResponse collectPostings(@RequestHeader("Api-Key") String apiKey,
+                                            @RequestHeader("Client-Id") String clientId,
+                                            @RequestBody CollectPostingsRequest request);
 }

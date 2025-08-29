@@ -25,4 +25,8 @@ public class Product {
     //кол-во товара
     @JsonProperty(value = "quantity", required = true)
     Integer quantity;
+
+    //id товара в заказ
+    @JsonProperty(value = "sku", required = true)
+    Long sku;
 }

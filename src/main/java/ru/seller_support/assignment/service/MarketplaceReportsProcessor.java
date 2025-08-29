@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MarketplaceProcessor {
+public class MarketplaceReportsProcessor {
 
     private static final String PDF_NAME_PATTERN = "Этикетки %s.pdf";
     private static final String EXCEL_NAME_PATTERN = "Заказы %s.xlsx";

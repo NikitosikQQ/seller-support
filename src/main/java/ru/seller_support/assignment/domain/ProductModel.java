@@ -27,6 +27,7 @@ public class ProductModel {
     private String color;
     private String promoName;
     private String comment;
+    private String marketplaceProductId;
 
     @Builder.Default
     private Boolean wrongArticle = false;

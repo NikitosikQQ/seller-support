@@ -14,4 +14,6 @@ public interface ShopRepository extends JpaRepository<ShopEntity, UUID> {
     List<ShopEntity> findAllByActive(boolean active);
 
     List<ShopEntity> findAllByMarketplace(Marketplace marketplace);
+
+    List<ShopEntity> findAllByMarketplaceAndActive(Marketplace marketplace, boolean active);
 }

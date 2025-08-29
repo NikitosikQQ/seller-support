@@ -103,6 +103,11 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
         return packages;
     }
 
+    @Override
+    public void collectPostingsAwaitingPackaging(ShopEntity shop, List<PostingInfoModel> postings) {
+        throw new UnsupportedOperationException();
+    }
+
     private byte[] downloadStickers(PrepareStickersResponse info, ShopEntity shop) {
         try {
             Thread.sleep(info.getResult().getEstimatedGenerationTime());

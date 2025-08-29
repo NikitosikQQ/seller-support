@@ -18,4 +18,5 @@ public class GetPostingsModel {
     private List<WbSupplyDetails> wbSupplies;
     private Instant excludeFromOzon;
     private Instant excludeToOzon;
+    private String ozonStatus;
 }

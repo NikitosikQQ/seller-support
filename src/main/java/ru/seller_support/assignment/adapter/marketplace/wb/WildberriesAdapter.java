@@ -100,6 +100,11 @@ public class WildberriesAdapter extends MarketplaceAdapter {
         return packages;
     }
 
+    @Override
+    public void collectPostingsAwaitingPackaging(ShopEntity shop, List<PostingInfoModel> postings) {
+        throw new UnsupportedOperationException();
+    }
+
     private GetStickersRequest buildGetStickersRequest(List<String> orderIds) {
         return GetStickersRequest.builder()
                 .orders(orderIds.stream().map(Long::valueOf).toList())
