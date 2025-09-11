@@ -29,6 +29,8 @@ public class ChpuTemplateExcelGenerator {
 
     private static final int MAX_COLUMNS = 12;
 
+    private static final String LDSP_RASPIL_SHOP_NAME = "LDSPRaspil";
+
     private static final String EXCEL_NAME_PATTERN = "Шаблон раскроя %s, толщина %s, номер цвета %s.xlsx";
     private static final String SHEET_NAME = "Шаблон раскроя";
     private static final String A_COLUMN_VALUE = "Да";
@@ -40,12 +42,15 @@ public class ChpuTemplateExcelGenerator {
         if (Objects.isNull(postings) || postings.isEmpty()) {
             return null;
         }
+        List<PostingInfoModel> postingWithoutLDSPRaspil = postings.stream()
+                .filter(it-> !it.getShopName().equals(LDSP_RASPIL_SHOP_NAME))
+                .toList();
         Map<String, byte[]> templates = new TreeMap<>();
         Map<MaterialEntity, List<ArticlePromoInfoEntity>> groupedArticlesByMaterial = preparationService.getChpuMaterialArticlesMap();
         if (Objects.isNull(groupedArticlesByMaterial) || groupedArticlesByMaterial.isEmpty()) {
             return templates;
         }
-        groupedArticlesByMaterial.forEach((material, articles) -> createTemplate(templates, material, articles, postings));
+        groupedArticlesByMaterial.forEach((material, articles) -> createTemplate(templates, material, articles, postingWithoutLDSPRaspil));
         return templates;
     }
 

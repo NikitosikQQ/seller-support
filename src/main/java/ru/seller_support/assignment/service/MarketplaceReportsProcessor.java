@@ -62,7 +62,6 @@ public class MarketplaceReportsProcessor {
         log.info("Успешно получены отправления в количестве {}, из них ошибочных артикулов {}", filteringPostings.size(),
                 wrongPostings.size());
 
-
         commentService.addCommentsIfNecessary(correctPostings);
         log.info("Успешно отредактированы комментарии по артикулам");
 
