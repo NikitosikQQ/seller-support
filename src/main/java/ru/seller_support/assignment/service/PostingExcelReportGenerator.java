@@ -94,17 +94,8 @@ public class PostingExcelReportGenerator {
 
         int nextRowIndex = 1;
         try (Workbook wb = initialWorkBook(isNotFullReport); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            nextRowIndex = fillSheetLDCPRaspil(wb, groupedPostings.get(Marketplace.OZON), isNotFullReport);
-            for (Map.Entry<Marketplace, List<PostingInfoModel>> entry : groupedPostings.entrySet()) {
-                Marketplace marketplace = entry.getKey();
-                List<PostingInfoModel> mutablePostings = entry.getValue();
-                nextRowIndex = createRowTitle(wb, nextRowIndex, marketplace.getValue());
-                for (MaterialEntity material : materialArticlesMap.keySet()) {
-                    List<ArticlePromoInfoEntity> articles = materialArticlesMap.get(material);
-                    nextRowIndex = fillSheetByMaterial(wb, mutablePostings, nextRowIndex, material, articles, isNotFullReport);
-                }
-                nextRowIndex = fillSheetRemaining(wb, mutablePostings, nextRowIndex, isNotFullReport);
-            }
+            nextRowIndex = fillSheetLDCPRaspil(wb, groupedPostings.get(Marketplace.OZON), materialArticlesMap, isNotFullReport);
+            nextRowIndex = fillSheetWithSortingByMaterial(groupedPostings, materialArticlesMap, wb, isNotFullReport, nextRowIndex);
             fillSheetBySummary(wb, summaryOfMaterials, isNotFullReport);
             if (Objects.nonNull(wrongPostings) && !wrongPostings.isEmpty()) {
                 nextRowIndex = fillSheetByWrongPostings(wb, wrongPostings, nextRowIndex);
@@ -164,7 +155,24 @@ public class PostingExcelReportGenerator {
 
             payloadInderRow++;
         }
+    }
 
+    private int fillSheetWithSortingByMaterial(Map<Marketplace, List<PostingInfoModel>> groupedPostings,
+                                               Map<MaterialEntity, List<ArticlePromoInfoEntity>> materialArticlesMap,
+                                               Workbook wb,
+                                               boolean isNotFullReport,
+                                               int nextRowIndex) {
+        for (Map.Entry<Marketplace, List<PostingInfoModel>> entry : groupedPostings.entrySet()) {
+            Marketplace marketplace = entry.getKey();
+            List<PostingInfoModel> mutablePostings = entry.getValue();
+            nextRowIndex = createRowTitle(wb, nextRowIndex, marketplace.getValue());
+            for (MaterialEntity material : materialArticlesMap.keySet()) {
+                List<ArticlePromoInfoEntity> articles = materialArticlesMap.get(material);
+                nextRowIndex = fillSheetByMaterial(wb, mutablePostings, nextRowIndex, material, articles, isNotFullReport);
+            }
+            nextRowIndex = fillSheetRemaining(wb, mutablePostings, nextRowIndex, isNotFullReport);
+        }
+        return nextRowIndex;
     }
 
     private Workbook initialWorkBook(boolean isNotFullReport) {
@@ -181,7 +189,10 @@ public class PostingExcelReportGenerator {
         headersMap.forEach((i, header) -> row.createCell(i).setCellValue(header));
     }
 
-    private int fillSheetLDCPRaspil(Workbook wb, List<PostingInfoModel> postings, boolean isNotFullReport) {
+    private int fillSheetLDCPRaspil(Workbook wb,
+                                    List<PostingInfoModel> postings,
+                                    Map<MaterialEntity, List<ArticlePromoInfoEntity>> materialArticlesMap,
+                                    boolean isNotFullReport) {
         int rowIndex = 1;
         List<PostingInfoModel> LDSPRaspilPostings = filterPostingsByShop(postings, LDSP_RASPIL_SHOP_NAME);
         if (LDSPRaspilPostings.isEmpty()) {
@@ -191,7 +202,11 @@ public class PostingExcelReportGenerator {
         rowIndex = createRowTitle(wb, rowIndex, LDSP_RASPIL_SHOP_TITLE_NAME);
         Sheet sheet = wb.getSheet(SHEET_NAME);
 
-        rowIndex = fillRowsBySortingStrategy(sheet, LDSPRaspilPostings, rowIndex, SortingPostingByParam.COLOR_NUMBER, isNotFullReport);
+        for (MaterialEntity material : materialArticlesMap.keySet()) {
+            List<ArticlePromoInfoEntity> articles = materialArticlesMap.get(material);
+            rowIndex = fillSheetByMaterial(wb, LDSPRaspilPostings, rowIndex, material, articles, isNotFullReport);
+        }
+        rowIndex = fillSheetRemaining(wb, LDSPRaspilPostings, rowIndex, isNotFullReport);
 
         rowIndex = addEmptyRows(sheet, rowIndex);
 
