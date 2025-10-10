@@ -11,6 +11,7 @@ import ru.seller_support.assignment.adapter.postgres.entity.ArticlePromoInfoEnti
 import ru.seller_support.assignment.adapter.postgres.entity.MaterialEntity;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.ProductModel;
+import ru.seller_support.assignment.domain.enums.Marketplace;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -43,7 +44,7 @@ public class ChpuTemplateExcelGenerator {
             return null;
         }
         List<PostingInfoModel> postingWithoutLDSPRaspil = postings.stream()
-                .filter(it-> !it.getShopName().equals(LDSP_RASPIL_SHOP_NAME))
+                .filter(it -> !it.getShopName().equals(LDSP_RASPIL_SHOP_NAME))
                 .toList();
         Map<String, byte[]> templates = new TreeMap<>();
         Map<MaterialEntity, List<ArticlePromoInfoEntity>> groupedArticlesByMaterial = preparationService.getChpuMaterialArticlesMap();
@@ -130,7 +131,10 @@ public class ChpuTemplateExcelGenerator {
         row.createCell(0).setCellValue(A_COLUMN_VALUE);
         row.createCell(1).setCellValue(B_COLUMN_VALUE);
         row.createCell(2).setCellValue(material.getChpuMaterialName());
-        row.createCell(3).setCellValue(material.getChpuArticleNumber());
+
+        var cell3 = row.createCell(3);
+        cell3.setCellValue(Integer.parseInt(material.getChpuArticleNumber()));
+
         row.createCell(4).setCellValue(product.getThickness());
         row.createCell(5).setCellValue(EMPTY_STRING);
         row.createCell(6).setCellValue(EMPTY_STRING);
@@ -139,6 +143,14 @@ public class ChpuTemplateExcelGenerator {
         row.createCell(9).setCellValue(lengthGreaterThanWidth ? product.getLength() : product.getWidth());
         row.createCell(10).setCellValue(lengthGreaterThanWidth ? product.getWidth() : product.getLength());
         row.createCell(11).setCellValue(product.getQuantity());
-        row.createCell(12).setCellValue(posting.getPostingNumber());
+
+        var cell12 = row.createCell(12);
+
+        if (posting.getMarketplace() == Marketplace.WILDBERRIES) {
+            long postingNumber = Long.parseLong(posting.getPostingNumber());
+            cell12.setCellValue(postingNumber);
+        } else {
+            cell12.setCellValue(posting.getPostingNumber());
+        }
     }
 }
