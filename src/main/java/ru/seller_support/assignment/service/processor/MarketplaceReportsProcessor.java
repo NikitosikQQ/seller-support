@@ -1,4 +1,4 @@
-package ru.seller_support.assignment.service;
+package ru.seller_support.assignment.service.processor;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +12,11 @@ import ru.seller_support.assignment.domain.GetPostingsModel;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
 import ru.seller_support.assignment.exception.PostingGenerationException;
+import ru.seller_support.assignment.service.PostingPreparationService;
+import ru.seller_support.assignment.service.ShopService;
 import ru.seller_support.assignment.service.comment.CommentService;
+import ru.seller_support.assignment.service.report.ChpuTemplateExcelGenerator;
+import ru.seller_support.assignment.service.report.PostingExcelReportGenerator;
 import ru.seller_support.assignment.util.CommonUtils;
 import ru.seller_support.assignment.util.FileUtils;
 
