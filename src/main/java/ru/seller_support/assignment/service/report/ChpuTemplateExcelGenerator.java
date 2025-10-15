@@ -1,4 +1,4 @@
-package ru.seller_support.assignment.service;
+package ru.seller_support.assignment.service.report;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +12,7 @@ import ru.seller_support.assignment.adapter.postgres.entity.MaterialEntity;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.ProductModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
+import ru.seller_support.assignment.service.PostingPreparationService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -43,15 +44,12 @@ public class ChpuTemplateExcelGenerator {
         if (Objects.isNull(postings) || postings.isEmpty()) {
             return null;
         }
-        List<PostingInfoModel> postingWithoutLDSPRaspil = postings.stream()
-                .filter(it -> !it.getShopName().equals(LDSP_RASPIL_SHOP_NAME))
-                .toList();
         Map<String, byte[]> templates = new TreeMap<>();
         Map<MaterialEntity, List<ArticlePromoInfoEntity>> groupedArticlesByMaterial = preparationService.getChpuMaterialArticlesMap();
         if (Objects.isNull(groupedArticlesByMaterial) || groupedArticlesByMaterial.isEmpty()) {
             return templates;
         }
-        groupedArticlesByMaterial.forEach((material, articles) -> createTemplate(templates, material, articles, postingWithoutLDSPRaspil));
+        groupedArticlesByMaterial.forEach((material, articles) -> createTemplate(templates, material, articles, postings));
         return templates;
     }
 

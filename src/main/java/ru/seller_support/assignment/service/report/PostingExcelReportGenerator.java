@@ -1,4 +1,4 @@
-package ru.seller_support.assignment.service;
+package ru.seller_support.assignment.service.report;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +13,7 @@ import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.SummaryOfMaterialModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
 import ru.seller_support.assignment.domain.enums.SortingPostingByParam;
+import ru.seller_support.assignment.service.PostingPreparationService;
 import ru.seller_support.assignment.util.CommonUtils;
 import ru.seller_support.assignment.util.SecurityUtils;
 
@@ -82,8 +83,9 @@ public class PostingExcelReportGenerator {
         if (Objects.isNull(postings) || postings.isEmpty()) {
             return null;
         }
-        Map<Marketplace, List<PostingInfoModel>> groupedPostings = postings.stream()
-                .collect(Collectors.groupingBy(PostingInfoModel::getMarketplace));
+       // Map<Marketplace, List<PostingInfoModel>> groupedPostings = postings.stream()
+        //        .collect(Collectors.groupingBy(PostingInfoModel::getMarketplace));
+        List<PostingInfoModel> mutablePostings = new ArrayList<>(postings);
 
         boolean isNotFullReport = checkUserRolesForFullReport();
 
@@ -94,8 +96,8 @@ public class PostingExcelReportGenerator {
 
         int nextRowIndex = 1;
         try (Workbook wb = initialWorkBook(isNotFullReport); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            nextRowIndex = fillSheetLDCPRaspil(wb, groupedPostings.get(Marketplace.OZON), materialArticlesMap, isNotFullReport);
-            nextRowIndex = fillSheetWithSortingByMaterial(groupedPostings, materialArticlesMap, wb, isNotFullReport, nextRowIndex);
+         //   nextRowIndex = fillSheetLDCPRaspil(wb, groupedPostings.get(Marketplace.OZON), materialArticlesMap, isNotFullReport);
+            nextRowIndex = fillSheetWithSortingByMaterial(mutablePostings, materialArticlesMap, wb, isNotFullReport, nextRowIndex);
             fillSheetBySummary(wb, summaryOfMaterials, isNotFullReport);
             if (Objects.nonNull(wrongPostings) && !wrongPostings.isEmpty()) {
                 nextRowIndex = fillSheetByWrongPostings(wb, wrongPostings, nextRowIndex);
@@ -157,21 +159,21 @@ public class PostingExcelReportGenerator {
         }
     }
 
-    private int fillSheetWithSortingByMaterial(Map<Marketplace, List<PostingInfoModel>> groupedPostings,
+    private int fillSheetWithSortingByMaterial(List<PostingInfoModel> groupedPostings,
                                                Map<MaterialEntity, List<ArticlePromoInfoEntity>> materialArticlesMap,
                                                Workbook wb,
                                                boolean isNotFullReport,
                                                int nextRowIndex) {
-        for (Map.Entry<Marketplace, List<PostingInfoModel>> entry : groupedPostings.entrySet()) {
-            Marketplace marketplace = entry.getKey();
-            List<PostingInfoModel> mutablePostings = entry.getValue();
-            nextRowIndex = createRowTitle(wb, nextRowIndex, marketplace.getValue());
+      //  for (Map.Entry<Marketplace, List<PostingInfoModel>> entry : groupedPostings.entrySet()) {
+           // Marketplace marketplace = entry.getKey();
+           // List<PostingInfoModel> mutablePostings = entry.getValue();
+          //  nextRowIndex = createRowTitle(wb, nextRowIndex, marketplace.getValue());
             for (MaterialEntity material : materialArticlesMap.keySet()) {
                 List<ArticlePromoInfoEntity> articles = materialArticlesMap.get(material);
-                nextRowIndex = fillSheetByMaterial(wb, mutablePostings, nextRowIndex, material, articles, isNotFullReport);
+                nextRowIndex = fillSheetByMaterial(wb, groupedPostings, nextRowIndex, material, articles, isNotFullReport);
             }
-            nextRowIndex = fillSheetRemaining(wb, mutablePostings, nextRowIndex, isNotFullReport);
-        }
+            nextRowIndex = fillSheetRemaining(wb, groupedPostings, nextRowIndex, isNotFullReport);
+      //  }
         return nextRowIndex;
     }
 
