@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.seller_support.assignment.controller.dto.request.GeneratePostingsReportRequest;
-import ru.seller_support.assignment.service.MarketplaceReportsProcessor;
+import ru.seller_support.assignment.service.processor.MarketplaceReportsProcessor;
 
 import java.util.Objects;
 
