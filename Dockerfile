@@ -10,7 +10,7 @@ COPY src ./src
 
 RUN mvn -B -f pom.xml clean install -DskipTests -Dcheckstyle.skip
 
-FROM openjdk:21-jdk
+FROM eclipse-temurin:21-jdk
 
 WORKDIR /app
 
