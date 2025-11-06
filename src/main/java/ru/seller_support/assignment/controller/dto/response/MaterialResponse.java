@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
@@ -17,4 +18,6 @@ public class MaterialResponse {
     private Boolean useInChpuTemplate;
     private String chpuMaterialName;
     private String chpuArticleNumber;
+    private BigDecimal employeeRateCoefficient;
+    private Boolean isOnlyPackaging;
 }

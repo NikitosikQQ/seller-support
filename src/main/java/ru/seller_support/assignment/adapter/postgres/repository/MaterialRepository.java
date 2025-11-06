@@ -16,5 +16,9 @@ public interface MaterialRepository extends JpaRepository<MaterialEntity, UUID> 
 
     List<MaterialEntity> findAllByOrderByNameAsc();
 
+    List<MaterialEntity> findAllByUseInChpuTemplate(Boolean useInChpuTemplate);
+
     List<MaterialEntity> findAllByIdIn(Collection<UUID> ids);
+
+    List<MaterialEntity> findAllByIsOnlyPackaging(Boolean isOnlyPackaging);
 }

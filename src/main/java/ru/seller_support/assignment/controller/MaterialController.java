@@ -6,9 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.seller_support.assignment.controller.dto.request.MaterialDeleteRequest;
-import ru.seller_support.assignment.controller.dto.request.MaterialSaveRequest;
-import ru.seller_support.assignment.controller.dto.request.MaterialUpdateRequest;
+import ru.seller_support.assignment.controller.dto.request.material.MaterialDeleteRequest;
+import ru.seller_support.assignment.controller.dto.request.material.MaterialSaveRequest;
+import ru.seller_support.assignment.controller.dto.request.material.MaterialUpdateRequest;
 import ru.seller_support.assignment.controller.dto.response.MaterialResponse;
 import ru.seller_support.assignment.service.MaterialService;
 
@@ -34,6 +34,7 @@ public class MaterialController {
                         .useInChpuTemplate(material.getUseInChpuTemplate())
                         .chpuMaterialName(material.getChpuMaterialName())
                         .chpuArticleNumber(material.getChpuArticleNumber())
+                        .isOnlyPackaging(material.getIsOnlyPackaging())
                         .build())
                 .toList();
     }

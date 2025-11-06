@@ -5,6 +5,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import ru.seller_support.assignment.config.security.UserDetailsImpl;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -23,6 +24,10 @@ public class SecurityUtils {
     public static UserDetails getUserDetails() {
         Authentication authentication = getAuthentication();
         return (UserDetails) authentication.getPrincipal();
+    }
+
+    public static String getCurrentUsername() {
+        return ((UserDetailsImpl) getAuthentication().getPrincipal()).getUsername();
     }
 
     public static Set<String> getRoles() {

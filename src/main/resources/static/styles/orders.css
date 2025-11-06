@@ -1,0 +1,407 @@
+/* ------------------- ФИЛЬТРЫ ------------------- */
+.order-filters-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* вертикальный отступ между рядами */
+    margin-bottom: 25px; /* отступ от таблицы */
+}
+
+.mebel-filters-section {
+    display: flex;
+    gap: 15px; /* вертикальный отступ между рядами */
+    margin-bottom: 25px; /* отступ от таблицы */
+}
+
+/* Ряды инпутов и селектов */
+.inputs-row,
+.selects-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px; /* горизонтальный отступ между элементами */
+}
+
+/* ------------------- ИНПУТЫ ------------------- */
+.filter-item {
+    flex: 0 1 180px;
+    max-width: 220px;
+    margin-right: 40px;
+    margin-bottom: 10px;
+}
+
+.filter-item input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fafafa;
+    color: #333;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.filter-item input::placeholder {
+    color: rgba(0,0,0,0.4);
+}
+
+.filter-item input:focus {
+    border-color: #4b8df8;
+    box-shadow: 0 0 0 2px rgba(75,141,248,0.25);
+    outline: none;
+    background: #fff;
+}
+
+/* ------------------- SELECT / CHOICES ------------------- */
+/* Новый контейнер для селекторов */
+.select-wrapper {
+    flex: 0 1 220px;       /* базовая ширина */
+    max-width: 400px;      /* увеличиваем для длинных placeholder */
+    margin-right: 20px;
+    margin-bottom: 10px;
+}
+
+/* Внутренний контейнер Choices.js */
+.select-wrapper .choices__inner {
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #fafafa;
+    min-height: 38px;
+    padding: 6px 12px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;       /* текст не переносится */
+    overflow: hidden;          /* обрезка лишнего */
+}
+
+/* Список выбранных тегов (для мультиселекта) */
+.select-wrapper .choices__list--multiple {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px;
+}
+
+.select-wrapper .choices__list--multiple .choices__item {
+    flex: 0 0 auto; /* не сжимать */
+    padding: 6px 12px;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+/* Dropdown */
+.select-wrapper .choices__list--dropdown {
+    min-width: 220px;
+    max-width: 500px;       /* увеличиваем ширину dropdown */
+    white-space: nowrap;     /* текст не переносится */
+    overflow-x: auto;        /* горизонтальный скролл если нужно */
+    border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+
+/* Опции в dropdown */
+.select-wrapper .choices__item--choice {
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.select-wrapper .choices__item--choice.is-highlighted {
+    background-color: #7a7e7e;
+}
+
+/* ------------------- КНОПКИ ------------------- */
+.order-filters-section button.order-search-button,
+.import-orders-button,
+.order-export-button {
+    padding: 10px 28px;
+    background: #4b8df8;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.import-orders-button,
+.order-export-button {
+    margin-top: 15px;
+}
+
+.order-filters-section button.order-search-button:hover,
+.import-orders-button:hover,
+.order-export-button:hover {
+    background: #2f6de0;
+}
+
+.order-export-button:disabled,
+.order-search-button:disabled {
+    background: #999;
+    cursor: not-allowed;
+}
+
+/* ------------------- ТАБЛИЦА ------------------- */
+.order-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.order-table th,
+.order-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+
+.order-table th {
+    background: #f7f7f7;
+    font-weight: 600;
+}
+
+.order-table tbody tr:hover {
+    cursor: pointer;
+    background-color: #e0f0ff;
+}
+
+/* ------------------- МОДАЛКА ------------------- */
+.order-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: orderFadeIn 0.2s ease-in-out;
+}
+
+.order-modal-content {
+    background: #fff;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    max-width: 700px;
+    width: 90%;
+    position: relative;
+    animation: orderSlideUp 0.25s ease-in-out;
+}
+
+.order-close-button {
+    position: absolute;
+    right: 16px;
+    top: 12px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.order-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 20px;
+    margin-top: 16px;
+}
+
+.order-detail-item {
+    background: #fafafa;
+    padding: 6px 10px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.order-detail-item .label {
+    font-weight: 600;
+    color: #333;
+}
+
+.order-detail-item .value {
+    color: #555;
+    text-align: right;
+}
+
+/* ---------- Кастомный placeholder для datetime-local ---------- */
+.date-input {
+    width: 220px;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fafafa;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.date-input:focus {
+    border-color: #4b8df8;
+    box-shadow: 0 0 0 2px rgba(75,141,248,0.25);
+    outline: none;
+    background-color: #fff;
+}
+
+/* ------------------- АНИМАЦИИ ------------------- */
+@keyframes orderFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes orderSlideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.load-orders-button {
+    background: #3b3b3b;
+    color: #ffffff;
+    padding: 0.85rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease, box-shadow 0.2s ease;
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.loader {
+    margin-top: 15px;
+    font-weight: bold;
+    color: #555;
+}
+
+.load-message {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+/* ------------------- ИСТОРИЯ ЗАКАЗА ------------------- */
+.order-history-section {
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.order-history-section h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.order-history-loader,
+.order-history-error,
+.order-history-empty {
+    font-size: 14px;
+    color: #666;
+    padding: 6px 0;
+}
+
+.order-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.order-history-item {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: background 0.2s;
+}
+
+.order-history-item:hover {
+    background: #f0f6ff;
+}
+
+.order-history-top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+}
+
+.order-history-bottom {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #555;
+}
+
+.order-history-top .status {
+    color: #4b8df8;
+    font-weight: 600;
+}
+
+.order-history-top .date {
+    color: #888;
+    font-size: 13px;
+}
+
+/* ------------------- ИСТОРИЯ С ПОДПИСЯМИ ------------------- */
+.order-history-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px 20px;
+}
+
+.order-history-item .field {
+    display: flex;
+    flex-direction: column;
+    background: #fafafa;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #eee;
+}
+
+.order-history-item .label {
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 2px;
+}
+
+.order-history-item .value {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+}
+
+.order-history-item .status {
+    color: #4b8df8;
+    font-weight: 600;
+}
+
+.order-history-item .date {
+    color: #888;
+    font-size: 13px;
+}
+
+.input-not-role:focus {
+    border-color: #2f2f2f; /* Акцент */
+    background-color: #ffffff;
+    outline: none;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+}
+
+.input-not-role {
+    padding: 0.85rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #fafafa;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+    margin-bottom: 1rem;
+}

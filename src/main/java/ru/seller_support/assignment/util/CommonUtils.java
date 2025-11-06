@@ -2,15 +2,15 @@ package ru.seller_support.assignment.util;
 
 import lombok.experimental.UtilityClass;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 @UtilityClass
 public class CommonUtils {
+
+    public static final ZoneId UTC_ZONE_ID = ZoneId.of("UTC");
+    public static final ZoneId MOSCOW_ZONE_ID = ZoneId.of("Europe/Moscow");
 
     public static final int COUNT_OF_SECONDS_FOR_END_OF_DAY = 86399;
     public static final String EMPTY_STRING = "";
@@ -20,9 +20,6 @@ public class CommonUtils {
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy H:mm")
             .withZone(ZoneOffset.UTC);
     public static final DateTimeFormatter REQUEST_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-    public static final Duration MOSCOW_OFFSET = Duration.parse("PT3H");
-
 
     public static Instant parseStringToInstantOzon(String date, boolean isFrom) {
         if (Objects.isNull(date) || date.isEmpty()) {
@@ -34,8 +31,8 @@ public class CommonUtils {
                 : resultDate.atStartOfDay(ZoneOffset.UTC).toInstant().plusSeconds(COUNT_OF_SECONDS_FOR_END_OF_DAY);
     }
 
-    public static Instant toMoscowTime(Instant instant) {
-        return instant.plus(MOSCOW_OFFSET);
+    public static LocalDateTime toMoscowLocalDateTime(Instant instant) {
+        return instant.atZone(MOSCOW_ZONE_ID).toLocalDateTime();
     }
 
     public static Instant parseStringToInstant(String date) {
@@ -46,12 +43,16 @@ public class CommonUtils {
         return resultDate.atStartOfDay(ZoneOffset.UTC).toInstant().plusSeconds(COUNT_OF_SECONDS_FOR_END_OF_DAY);
     }
 
-    public static String formatInstantToDateTimeString(Instant instant) {
-        return formatInstantToString(DATE_TIME_FORMATTER, instant);
+    public static String formatToDateTimeString(LocalDateTime time) {
+        return DATE_TIME_FORMATTER.format(time);
     }
 
     public static String formatInstantToDateString(Instant instant) {
         return formatInstantToString(DATE_FORMATTER, instant);
+    }
+
+    public static String formatLocalDateTimeToDateString(LocalDateTime localDateTime) {
+        return DATE_FORMATTER.format(localDateTime);
     }
 
     public static String formatInstantToString(DateTimeFormatter formatter, Instant instant) {

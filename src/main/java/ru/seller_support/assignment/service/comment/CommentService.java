@@ -8,8 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.seller_support.assignment.adapter.postgres.entity.ArticlePromoInfoEntity;
 import ru.seller_support.assignment.adapter.postgres.entity.CommentEntity;
 import ru.seller_support.assignment.adapter.postgres.repository.CommentRepository;
-import ru.seller_support.assignment.controller.dto.request.CommentSaveRequest;
-import ru.seller_support.assignment.controller.dto.request.CommentUpdateRequest;
+import ru.seller_support.assignment.controller.dto.request.comment.CommentSaveRequest;
+import ru.seller_support.assignment.controller.dto.request.comment.CommentUpdateRequest;
 import ru.seller_support.assignment.controller.mapper.CommentMapper;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.comment.ConditionForCommentModel;
@@ -78,17 +78,17 @@ public class CommentService {
                 .filter(posting -> promoNames.contains(posting.getProduct().getPromoName()))
                 .collect(Collectors.groupingBy(it -> it.getProduct().getPromoName()));
 
-        groupedPostings.forEach((promoName, listOfPostings) -> {
-            articles.stream()
-                    .filter(article -> article.getName().equalsIgnoreCase(promoName))
-                    .findFirst()
-                    .ifPresent(article -> {
-                        Set<CommentEntity> comments = article.getComments();
-                        comments.forEach(comment ->
-                                writeComments(comment.getConditions(), comment.getValue(), listOfPostings)
-                        );
-                    });
-        });
+        groupedPostings.forEach((promoName, listOfPostings) ->
+                articles.stream()
+                        .filter(article -> article.getName().equalsIgnoreCase(promoName))
+                        .findFirst()
+                        .ifPresent(article -> {
+                            Set<CommentEntity> comments = article.getComments();
+                            comments.forEach(comment ->
+                                    writeComments(comment.getConditions(), comment.getValue(), listOfPostings)
+                            );
+                        })
+        );
     }
 
     private ConditionForCommentHandler getConditionForCommentHandlerByFieldType(FieldForCondition field) {

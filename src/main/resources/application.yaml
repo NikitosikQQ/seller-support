@@ -23,7 +23,7 @@ org:
 app:
   security:
     secret: ${APP_SECURITY_SECRET:620b2a375d2fddb70e26371777add3645c459d054fd68016ef761ce8931bceee}
-    lifetime: ${APP_SECURITY_LIFETIME:PT120M}
+    lifetime: ${APP_SECURITY_LIFETIME:PT720M}
     salt: ${APP_SECURITY_SALT:ce66e847ab14d3d8}
   integrations:
     marketplaces:
@@ -37,3 +37,8 @@ app:
     collectPostings:
       initialDelay: PT1M
       fixedDelay: PT1H
+  orders:
+    ttl: P365D
+    dimensionalTolerance: 10
+  employeeCapacity:
+    ttl: P365D

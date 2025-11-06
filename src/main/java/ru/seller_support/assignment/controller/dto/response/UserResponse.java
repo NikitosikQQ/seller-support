@@ -14,4 +14,5 @@ public class UserResponse {
     String id;
     String username;
     List<String> roles;
+    List<String> workplaces;
 }

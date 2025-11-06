@@ -5,8 +5,8 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 import ru.seller_support.assignment.adapter.postgres.entity.CommentEntity;
-import ru.seller_support.assignment.controller.dto.request.CommentSaveRequest;
-import ru.seller_support.assignment.controller.dto.request.CommentUpdateRequest;
+import ru.seller_support.assignment.controller.dto.request.comment.CommentSaveRequest;
+import ru.seller_support.assignment.controller.dto.request.comment.CommentUpdateRequest;
 import ru.seller_support.assignment.controller.dto.response.comments.CommentsResponseDto;
 import ru.seller_support.assignment.domain.comment.ConditionForCommentModel;
 import ru.seller_support.assignment.domain.comment.RuleForCommentModel;
@@ -16,8 +16,8 @@ import ru.seller_support.assignment.domain.enums.GroupLogic;
 
 import java.util.List;
 
-import static ru.seller_support.assignment.controller.dto.request.CommentSaveRequest.ConditionForCommentSaveDto;
-import static ru.seller_support.assignment.controller.dto.request.CommentSaveRequest.RuleForCommentSaveDto;
+import static ru.seller_support.assignment.controller.dto.request.comment.CommentSaveRequest.ConditionForCommentSaveDto;
+import static ru.seller_support.assignment.controller.dto.request.comment.CommentSaveRequest.RuleForCommentSaveDto;
 import static ru.seller_support.assignment.controller.dto.response.comments.CommentsResponseDto.ConditionForCommentDto;
 import static ru.seller_support.assignment.controller.dto.response.comments.CommentsResponseDto.RuleForCommentDto;
 

@@ -6,13 +6,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.seller_support.assignment.adapter.postgres.entity.ShopEntity;
 import ru.seller_support.assignment.adapter.postgres.repository.ShopRepository;
-import ru.seller_support.assignment.controller.dto.request.CreateShopRequest;
-import ru.seller_support.assignment.controller.dto.request.DeleteShopRequest;
-import ru.seller_support.assignment.controller.dto.request.ShopChangeRequest;
+import ru.seller_support.assignment.controller.dto.request.shop.CreateShopRequest;
+import ru.seller_support.assignment.controller.dto.request.shop.DeleteShopRequest;
+import ru.seller_support.assignment.controller.dto.request.shop.ShopChangeRequest;
 import ru.seller_support.assignment.domain.enums.Marketplace;
 import ru.seller_support.assignment.exception.ShopChangeException;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -48,6 +49,11 @@ public class ShopService {
     @Transactional(readOnly = true)
     public List<ShopEntity> findAll() {
         return shopRepository.findAllByActive(true);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ShopEntity> findAllByNames(Collection<String> names) {
+        return shopRepository.findAllByActiveAndNameIn(true, names);
     }
 
     @Transactional(readOnly = true)

@@ -7,9 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.seller_support.assignment.adapter.postgres.entity.ArticlePromoInfoEntity;
 import ru.seller_support.assignment.adapter.postgres.entity.MaterialEntity;
 import ru.seller_support.assignment.adapter.postgres.repository.ArticlePromoInfoRepository;
-import ru.seller_support.assignment.controller.dto.request.ArticleDeleteRequest;
-import ru.seller_support.assignment.controller.dto.request.ArticleSaveRequest;
-import ru.seller_support.assignment.controller.dto.request.ArticleUpdateRequest;
+import ru.seller_support.assignment.controller.dto.request.article.ArticleDeleteRequest;
+import ru.seller_support.assignment.controller.dto.request.article.ArticleSaveRequest;
+import ru.seller_support.assignment.controller.dto.request.article.ArticleUpdateRequest;
 import ru.seller_support.assignment.exception.ArticleChangeException;
 
 import java.util.*;

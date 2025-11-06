@@ -367,6 +367,12 @@ modal-content .checkbox-group {
     gap: 1rem; /* Расстояние между селектором и QR-кодом */
 }
 
+.coefficient-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* Расстояние между селектором и ставкой */
+}
+
 .remove-supply-button {
     background: none;
     border: none;

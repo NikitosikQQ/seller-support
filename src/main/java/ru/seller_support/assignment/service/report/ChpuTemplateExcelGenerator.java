@@ -12,7 +12,7 @@ import ru.seller_support.assignment.adapter.postgres.entity.MaterialEntity;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.ProductModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
-import ru.seller_support.assignment.service.PostingPreparationService;
+import ru.seller_support.assignment.service.OrderParamsCalculatorService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -38,7 +38,7 @@ public class ChpuTemplateExcelGenerator {
     private static final String A_COLUMN_VALUE = "Да";
     private static final String B_COLUMN_VALUE = "Площадной";
 
-    private final PostingPreparationService preparationService;
+    private final OrderParamsCalculatorService preparationService;
 
     public Map<String, byte[]> createChpuTemplates(List<PostingInfoModel> postings) {
         if (Objects.isNull(postings) || postings.isEmpty()) {

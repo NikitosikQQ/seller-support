@@ -6,20 +6,19 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import ru.seller_support.assignment.adapter.postgres.entity.RoleEntity;
 import ru.seller_support.assignment.adapter.postgres.entity.UserEntity;
 import ru.seller_support.assignment.adapter.postgres.repository.RoleRepository;
 import ru.seller_support.assignment.adapter.postgres.repository.UserRepository;
-import ru.seller_support.assignment.controller.dto.request.CreateUserRequest;
-import ru.seller_support.assignment.controller.dto.request.DeleteUserRequest;
-import ru.seller_support.assignment.controller.dto.request.UserChangeRequest;
+import ru.seller_support.assignment.controller.dto.request.user.CreateUserRequest;
+import ru.seller_support.assignment.controller.dto.request.user.DeleteUserRequest;
+import ru.seller_support.assignment.controller.dto.request.user.UserChangeRequest;
+import ru.seller_support.assignment.domain.enums.Workplace;
 import ru.seller_support.assignment.exception.RoleChangeException;
 import ru.seller_support.assignment.exception.UserChangeException;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +38,14 @@ public class UserService {
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRoles(roles);
+        if (!CollectionUtils.isEmpty(request.getWorkplaces())) {
+            var workplaces = request.getWorkplaces().stream()
+                    .map(Workplace::fromValue)
+                    .toList();
+            user.setWorkplaces(workplaces);
+        } else {
+            user.setWorkplaces(Collections.emptyList());
+        }
         userRepository.save(user);
     }
 
@@ -57,6 +64,12 @@ public class UserService {
         if (Objects.nonNull(request.getUpdatedUsername())) {
             user.setUsername(request.getUpdatedUsername());
         }
+        if (Objects.nonNull(request.getWorkplaces())) {
+            var workplaces = request.getWorkplaces().stream()
+                    .map(Workplace::fromValue)
+                    .toList();
+            user.setWorkplaces(workplaces);
+        }
         userRepository.save(user);
     }
 
@@ -72,6 +85,11 @@ public class UserService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(
                         String.format("Нет пользователя с логином %s", username)));
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserEntity> findUsersByUsernames(Collection<String> usernames) {
+        return userRepository.findAllByUsernameIn(usernames);
     }
 
     private Set<RoleEntity> findRolesByNames(List<String> roleNames) {

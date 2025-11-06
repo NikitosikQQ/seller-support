@@ -20,6 +20,8 @@ public class JwtService {
 
     private static final String ROLES_KEY = "roles";
 
+    private static final long TWELVE_HOURS_PER_MILLIS = 43200000;
+
     @Value("${app.security.secret}")
     private String secret;
 
@@ -29,12 +31,14 @@ public class JwtService {
     public String generateToken() {
         UserDetails user = SecurityUtils.getUserDetails();
 
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + lifetime.toMillis());
-
         List<String> roles = user.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
+
+        Date now = new Date();
+        Date expiryDate = new Date(roles.contains("ROLE_EMPLOYEE")
+                ? now.getTime() + lifetime.toMillis() + TWELVE_HOURS_PER_MILLIS
+                : now.getTime() + lifetime.toMillis());
 
         return Jwts.builder()
                 .subject(user.getUsername())

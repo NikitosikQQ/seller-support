@@ -15,15 +15,14 @@ import ru.seller_support.assignment.util.CommonUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface YandexMarketAdapterMapper {
 
     String ARTICLE_SEPARATOR = "/";
 
+    @Mapping(target = "orderStatus", ignore = true)
     @Mapping(target = "marketplace", constant = "YANDEX_MARKET")
     @Mapping(target = "palletNumber", source = "shop.palletNumber")
     @Mapping(target = "shopName", source = "shop.name")
@@ -33,6 +32,7 @@ public interface YandexMarketAdapterMapper {
     PostingInfoModel toPostingInfoModel(Order order,
                                         ShopEntity shop);
 
+    @Mapping(target = "orderStatus", ignore = true)
     @Mapping(target = "marketplace", constant = "YANDEX_MARKET")
     @Mapping(target = "palletNumber", source = "shop.palletNumber")
     @Mapping(target = "shopName", source = "shop.name")
@@ -101,10 +101,8 @@ public interface YandexMarketAdapterMapper {
     }
 
     @Named("inProcessAt")
-    default Instant getInProcessAt(String creationDate) {
-        LocalDateTime dateTime = LocalDateTime.parse(
-                creationDate, YandexMarketConstants.CREATION_DATE_DATE_TIME_FORMATTER);
-        return dateTime.toInstant(ZoneOffset.UTC);
+    default LocalDateTime getInProcessAt(String creationDate) {
+        return LocalDateTime.parse(creationDate, YandexMarketConstants.CREATION_DATE_DATE_TIME_FORMATTER);
     }
 
     @Named("width")

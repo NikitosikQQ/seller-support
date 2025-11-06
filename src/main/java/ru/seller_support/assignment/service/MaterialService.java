@@ -1,14 +1,15 @@
 package ru.seller_support.assignment.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.seller_support.assignment.adapter.postgres.entity.MaterialEntity;
 import ru.seller_support.assignment.adapter.postgres.repository.MaterialRepository;
-import ru.seller_support.assignment.controller.dto.request.MaterialDeleteRequest;
-import ru.seller_support.assignment.controller.dto.request.MaterialSaveRequest;
-import ru.seller_support.assignment.controller.dto.request.MaterialUpdateRequest;
+import ru.seller_support.assignment.controller.dto.request.material.MaterialDeleteRequest;
+import ru.seller_support.assignment.controller.dto.request.material.MaterialSaveRequest;
+import ru.seller_support.assignment.controller.dto.request.material.MaterialUpdateRequest;
 import ru.seller_support.assignment.domain.enums.SortingPostingByParam;
 import ru.seller_support.assignment.exception.MaterialChangeException;
 
@@ -31,6 +32,11 @@ public class MaterialService {
         return repository.findAllByOrderByNameAsc();
     }
 
+    @Transactional(readOnly = true)
+    public List<MaterialEntity> findAllForChpu() {
+        return repository.findAllByUseInChpuTemplate(true);
+    }
+
     public List<MaterialEntity> findAllByIds(Collection<UUID> ids) {
         return repository.findAllByIdIn(ids);
     }
@@ -39,6 +45,10 @@ public class MaterialService {
     public void save(MaterialSaveRequest request) {
         checkNameInNotUnique(request.getName());
 
+        if (request.getIsOnlyPackaging() && request.getUseInChpuTemplate()) {
+            throw new ValidationException("Нельзя материалу быть только на упаковке и использоваться в ЧПУ одновременно");
+        }
+
         MaterialEntity material = new MaterialEntity();
         material.setName(request.getName());
         material.setSeparatorName(request.getSeparatorName());
@@ -46,6 +56,8 @@ public class MaterialService {
         material.setUseInChpuTemplate(request.getUseInChpuTemplate());
         material.setChpuMaterialName(request.getChpuMaterialName());
         material.setChpuArticleNumber(request.getChpuArticleNumber());
+        material.setIsOnlyPackaging(!Objects.isNull(request.getIsOnlyPackaging()) && request.getIsOnlyPackaging());
+
 
         repository.save(material);
     }
@@ -69,7 +81,14 @@ public class MaterialService {
         if (Objects.nonNull(request.getChpuArticleNumber())) {
             material.setChpuArticleNumber(request.getChpuArticleNumber());
         }
+        if (Objects.nonNull(request.getIsOnlyPackaging())) {
+            material.setIsOnlyPackaging(request.getIsOnlyPackaging());
+        }
         material.setSeparatorName(request.getSeparatorName());
+
+        if (material.getIsOnlyPackaging() && material.getUseInChpuTemplate()) {
+            throw new ValidationException("Нельзя материалу быть только на упаковке и использоваться в ЧПУ одновременно");
+        }
         repository.save(material);
     }
 
@@ -93,5 +112,9 @@ public class MaterialService {
             throw new MaterialChangeException(String.format(
                     "Наименование материала %s уже существует", name));
         }
+    }
+
+    public List<MaterialEntity> findAllOnlyPackaging(Boolean onlyPackaging) {
+        return repository.findAllByIsOnlyPackaging(onlyPackaging);
     }
 }

@@ -43,6 +43,9 @@ public class MaterialEntity implements Comparable<MaterialEntity> {
     @Column(name = "chpu_article_number")
     private String chpuArticleNumber;
 
+    @Column(name = "is_only_packaging")
+    private Boolean isOnlyPackaging;
+
     public boolean isNotSeparate() {
         return Objects.isNull(separatorName);
     }

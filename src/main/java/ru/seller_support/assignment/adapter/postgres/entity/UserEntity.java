@@ -1,11 +1,15 @@
 package ru.seller_support.assignment.adapter.postgres.entity;
 
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.Type;
+import ru.seller_support.assignment.domain.enums.Workplace;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -27,6 +31,10 @@ public class UserEntity {
     @Column(nullable = false)
     @ToString.Exclude
     private String password;
+
+    @Type(JsonType.class)
+    @Column(name = "workplaces", columnDefinition = "jsonb")
+    private List<Workplace> workplaces;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

@@ -36,6 +36,13 @@ public class GlobalControllerAdvice {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
     }
 
+    @ExceptionHandler(DuplicateOrdersFoundException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateOrderNumbersException(DuplicateOrdersFoundException ex) {
+        log.warn("Ошибка при попытке сохранить заказов: {}", ex.getMessage(), ex);
+        ErrorResponse body = errorResolver.resolve(ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
     @ExceptionHandler({RoleChangeException.class})
     public ResponseEntity<ErrorResponse> handleException(RoleChangeException ex) {
         log.warn("Ошибка при работе с ролями: {}", ex.getMessage(), ex);

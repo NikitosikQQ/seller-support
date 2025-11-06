@@ -21,18 +21,21 @@ public interface OzonAdapterMapper {
 
     String ARTICLE_SEPARATOR = "/";
 
+    @Mapping(target = "orderStatus", ignore = true)
     @Mapping(target = "marketplace", constant = "OZON")
     @Mapping(target = "palletNumber", source = "shop.palletNumber")
     @Mapping(target = "shopName", source = "shop.name")
     @Mapping(target = "product", expression = "java(getProduct(posting, shop))")
-    @Mapping(target = "inProcessAt", expression = "java(CommonUtils.toMoscowTime(posting.getInProcessAt()))")
+    @Mapping(target = "inProcessAt", expression = "java(CommonUtils.toMoscowLocalDateTime(posting.getInProcessAt()))")
     PostingInfoModel toPostingInfoModel(Posting posting,
                                         ShopEntity shop);
 
+    @Mapping(target = "orderStatus", ignore = true)
     @Mapping(target = "marketplace", constant = "OZON")
     @Mapping(target = "palletNumber", source = "shop.palletNumber")
     @Mapping(target = "shopName", source = "shop.name")
     @Mapping(target = "product", expression = "java(getWrongProduct(posting, shop))")
+    @Mapping(target = "inProcessAt", expression = "java(CommonUtils.toMoscowLocalDateTime(posting.getInProcessAt()))")
     PostingInfoModel toWrongPostingInfoModel(Posting posting,
                                              ShopEntity shop);
 

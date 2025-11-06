@@ -14,25 +14,28 @@ import ru.seller_support.assignment.util.CommonUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
+        imports = CommonUtils.class)
 public interface WildberriesAdapterMapper {
 
     String ARTICLE_SEPARATOR = "/";
 
+    @Mapping(target = "orderStatus", ignore = true)
     @Mapping(target = "marketplace", constant = "WILDBERRIES")
     @Mapping(target = "palletNumber", source = "shop.palletNumber")
     @Mapping(target = "shopName", source = "shop.name")
     @Mapping(target = "product", expression = "java(getProduct(order))")
-    @Mapping(target = "inProcessAt", source = "order.createdAt")
+    @Mapping(target = "inProcessAt", expression = "java(CommonUtils.toMoscowLocalDateTime(order.getCreatedAt()))")
     @Mapping(target = "postingNumber", source = "order.id")
     PostingInfoModel toPostingInfoModel(Order order,
                                         ShopEntity shop);
 
+    @Mapping(target = "orderStatus", ignore = true)
     @Mapping(target = "marketplace", constant = "WILDBERRIES")
     @Mapping(target = "palletNumber", source = "shop.palletNumber")
     @Mapping(target = "shopName", source = "shop.name")
     @Mapping(target = "product", expression = "java(getWrongProduct(order))")
-    @Mapping(target = "inProcessAt", source = "order.createdAt")
+    @Mapping(target = "inProcessAt", expression = "java(CommonUtils.toMoscowLocalDateTime(order.getCreatedAt()))")
     @Mapping(target = "postingNumber", source = "order.id")
     PostingInfoModel toWrongPostingInfoModel(Order order,
                                              ShopEntity shop);

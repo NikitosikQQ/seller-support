@@ -5,6 +5,8 @@ import lombok.experimental.UtilityClass;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
+import static ru.seller_support.assignment.util.CommonUtils.MOSCOW_ZONE_ID;
+
 @UtilityClass
 public class YandexMarketConstants {
 
@@ -12,7 +14,7 @@ public class YandexMarketConstants {
             DateTimeFormatter.ofPattern("dd-MM-yyyy").withZone(ZoneOffset.UTC);
 
     public static final DateTimeFormatter CREATION_DATE_DATE_TIME_FORMATTER =
-            DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss").withZone(ZoneOffset.UTC);
+            DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss").withZone(MOSCOW_ZONE_ID);
 
     public static class ShipmentStatus {
         public static final String OUTBOUND_READY_FOR_CONFIRMATION = "OUTBOUND_READY_FOR_CONFIRMATION";

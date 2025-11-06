@@ -3,8 +3,8 @@ package ru.seller_support.assignment.service.comment;
 import jakarta.validation.ValidationException;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.util.StringUtils;
-import ru.seller_support.assignment.controller.dto.request.CommentSaveRequest;
-import ru.seller_support.assignment.controller.dto.request.CommentUpdateRequest;
+import ru.seller_support.assignment.controller.dto.request.comment.CommentSaveRequest;
+import ru.seller_support.assignment.controller.dto.request.comment.CommentUpdateRequest;
 import ru.seller_support.assignment.domain.enums.ConditionOperator;
 import ru.seller_support.assignment.domain.enums.FieldForCondition;
 import ru.seller_support.assignment.domain.enums.GroupLogic;
@@ -12,8 +12,8 @@ import ru.seller_support.assignment.domain.enums.GroupLogic;
 import java.util.List;
 import java.util.Objects;
 
-import static ru.seller_support.assignment.controller.dto.request.CommentSaveRequest.ConditionForCommentSaveDto;
-import static ru.seller_support.assignment.controller.dto.request.CommentSaveRequest.RuleForCommentSaveDto;
+import static ru.seller_support.assignment.controller.dto.request.comment.CommentSaveRequest.ConditionForCommentSaveDto;
+import static ru.seller_support.assignment.controller.dto.request.comment.CommentSaveRequest.RuleForCommentSaveDto;
 
 @Service
 public class CommentRequestValidator {

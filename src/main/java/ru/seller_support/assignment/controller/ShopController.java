@@ -5,9 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.seller_support.assignment.controller.dto.request.CreateShopRequest;
-import ru.seller_support.assignment.controller.dto.request.DeleteShopRequest;
-import ru.seller_support.assignment.controller.dto.request.ShopChangeRequest;
+import ru.seller_support.assignment.controller.dto.request.shop.CreateShopRequest;
+import ru.seller_support.assignment.controller.dto.request.shop.DeleteShopRequest;
+import ru.seller_support.assignment.controller.dto.request.shop.ShopChangeRequest;
 import ru.seller_support.assignment.controller.dto.response.ShopResponse;
 import ru.seller_support.assignment.service.ShopService;
 

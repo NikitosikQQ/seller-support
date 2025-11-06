@@ -67,7 +67,7 @@ public class WildberriesAdapter extends MarketplaceAdapter {
     }
 
     @Override
-    public List<byte[]> getPackagesByPostingNumbers(ShopEntity shop, List<PostingInfoModel> postings) {
+    public List<byte[]> getPackagesByPostings(ShopEntity shop, List<PostingInfoModel> postings) {
         List<byte[]> packages = new ArrayList<>();
         Map<String, String> orderIdStickerIdMapping = new HashMap<>();
         Base64.Decoder decoder = Base64.getDecoder();
@@ -75,6 +75,8 @@ public class WildberriesAdapter extends MarketplaceAdapter {
         List<String> orderIds = postings.stream()
                 .map(PostingInfoModel::getPostingNumber)
                 .toList();
+
+        log.info("Попытка получить этикетки по заказам WB: {}", orderIds);
 
         for (int i = 0; i < orderIds.size(); i += MAX_ID_ORDERS_IN_REQUEST) {
             List<String> batch = orderIds.subList(i, Math.min(i + MAX_ID_ORDERS_IN_REQUEST, orderIds.size()));

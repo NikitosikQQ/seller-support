@@ -1,0 +1,95 @@
+/* ====== МОДАЛЬНОЕ ОКНО ДЛЯ ПИЛЫ ====== */
+
+.pila-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    animation: pilaFadeIn 0.2s ease-in-out;
+}
+
+.pila-modal-content {
+    background: #fff;
+    padding: 32px;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    max-width: 600px;
+    width: 90%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: pilaSlideUp 0.25s ease-in-out;
+}
+
+.pila-modal-content #qr-modal-code {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+/* Красный крест в правом верхнем углу */
+.pila-close-button {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-size: 26px;
+    color: #d63031;
+    cursor: pointer;
+    transition: transform 0.15s ease, color 0.2s ease;
+    background: none;
+    border: none;
+    line-height: 1;
+}
+
+.pila-close-button:hover {
+    color: #ff4d4d;
+    transform: scale(1.15);
+}
+
+/* ====== АНИМАЦИИ ====== */
+@keyframes pilaFadeIn {
+    from {
+        background: rgba(0, 0, 0, 0);
+    }
+    to {
+        background: rgba(0, 0, 0, 0.45);
+    }
+}
+
+@keyframes pilaSlideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ====== ОПЦИОНАЛЬНО: стили QR в модалке ====== */
+#qr-modal-code canvas {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.pila-search-button {
+    padding: 10px 28px;
+    background: #4b8df8;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.pila-search-button:hover {
+    background: #2f6de0;
+}
+.pila-search-button:disabled {
+    background: #999;
+    cursor: not-allowed;
+}

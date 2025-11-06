@@ -88,12 +88,15 @@ public class OzonAdapter extends MarketplaceAdapter {
     }
 
     @Override
-    public List<byte[]> getPackagesByPostingNumbers(ShopEntity shop, List<PostingInfoModel> postings) {
+    public List<byte[]> getPackagesByPostings(ShopEntity shop, List<PostingInfoModel> postings) {
+
         List<byte[]> packages = new ArrayList<>();
 
         List<String> postingNumbers = postings.stream()
                 .map(PostingInfoModel::getPostingNumber)
                 .toList();
+
+        log.info("Попытка получить этикетки по заказам OZON: {}", postingNumbers);
 
         for (int i = 0; i < postingNumbers.size(); i += MAX_POSTING_NUMBERS_IN_REQUEST) {
             List<String> batch = postingNumbers.subList(i, Math.min(i + MAX_POSTING_NUMBERS_IN_REQUEST, postingNumbers.size()));

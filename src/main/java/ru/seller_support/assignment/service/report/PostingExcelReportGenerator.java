@@ -9,20 +9,24 @@ import org.springframework.stereotype.Service;
 import ru.seller_support.assignment.adapter.postgres.entity.ArticlePromoInfoEntity;
 import ru.seller_support.assignment.adapter.postgres.entity.MaterialEntity;
 import ru.seller_support.assignment.adapter.postgres.entity.RoleEntity;
+import ru.seller_support.assignment.domain.AveragePricePerMeterLdsp16Model;
+import ru.seller_support.assignment.domain.InProcessAtPeriod;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.SummaryOfMaterialModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
+import ru.seller_support.assignment.domain.enums.OrderStatus;
 import ru.seller_support.assignment.domain.enums.SortingPostingByParam;
-import ru.seller_support.assignment.service.PostingPreparationService;
+import ru.seller_support.assignment.service.OrderParamsCalculatorService;
 import ru.seller_support.assignment.util.CommonUtils;
 import ru.seller_support.assignment.util.SecurityUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static ru.seller_support.assignment.util.CommonUtils.EMPTY_STRING;
 
 @Service
 @RequiredArgsConstructor
@@ -38,11 +42,13 @@ public class PostingExcelReportGenerator {
     private static final String POSTINGS_WITH_WRONG_ARTICLE_TITLE = "Некорректные артикулы";
     private static final String POSTINGS_WITH_WRONG_BOX_TITLE = "Некорректные грузоместа";
 
-    private static final int COLUMN_NUMBER_OF_SUMMARY_TABLE = 13;
+    private static final String SUMMARY_DATES_FORMAT = "%s - %s";
+
+    private static final int COLUMN_NUMBER_OF_SUMMARY_TABLE = 14;
 
     private static final int SKIP_ROWS_BETWEEN_SHOPS_COUNT = 3;
 
-    private static final Set<Integer> SHORT_KEYS = Set.of(0, 1, 2, 3, 4, 5, 6, 7);
+    private static final Set<Integer> NOT_ADMIN_REPORT_COLUMNS = Set.of(0, 1, 2, 3, 4, 5, 6, 7);
 
     private static final Map<Integer, String> HEADERS_MAIN_FULL_NAMING_MAP = Map.ofEntries(
             Map.entry(0, "Номер отправления"),
@@ -56,7 +62,8 @@ public class PostingExcelReportGenerator {
             Map.entry(8, "Принят в обработку"),
             Map.entry(9, "Сумма отправления"),
             Map.entry(10, "Метраж"),
-            Map.entry(11, "Сумма за метр кв")
+            Map.entry(11, "Сумма за метр кв"),
+            Map.entry(12, "Статус обработки")
     );
 
     private static final Map<Integer, Function<PostingInfoModel, Object>> VALUES_CELLS_MAP = Map.ofEntries(
@@ -68,37 +75,40 @@ public class PostingExcelReportGenerator {
             Map.entry(5, post -> post.getProduct().getQuantity()),
             Map.entry(6, PostingInfoModel::getMarketplace),
             Map.entry(7, post -> post.getProduct().getComment()),
-            Map.entry(8, post -> CommonUtils.formatInstantToDateTimeString(post.getInProcessAt())),
+            Map.entry(8, post -> CommonUtils.formatToDateTimeString(post.getInProcessAt())),
             Map.entry(9, post -> post.getProduct().getTotalPrice()),
             Map.entry(10, post -> post.getProduct().getAreaInMeters()),
-            Map.entry(11, post -> post.getProduct().getPricePerSquareMeter())
+            Map.entry(11, post -> post.getProduct().getPricePerSquareMeter()),
+            Map.entry(12, PostingInfoModel::getOrderStatus)
     );
 
-    private final PostingPreparationService preparationService;
+    private final OrderParamsCalculatorService preparationService;
 
-    public byte[] createNewPostingFile(List<PostingInfoModel> postings,
-                                       List<PostingInfoModel> wrongPostings,
-                                       List<PostingInfoModel> wrongBoxPostings,
-                                       Map<MaterialEntity, List<ArticlePromoInfoEntity>> materialArticlesMap) {
+    public byte[] createNewOrdersReportFile(List<PostingInfoModel> postings,
+                                            List<PostingInfoModel> wrongPostings,
+                                            List<PostingInfoModel> wrongBoxPostings) {
         if (Objects.isNull(postings) || postings.isEmpty()) {
             return null;
         }
-       // Map<Marketplace, List<PostingInfoModel>> groupedPostings = postings.stream()
-        //        .collect(Collectors.groupingBy(PostingInfoModel::getMarketplace));
         List<PostingInfoModel> mutablePostings = new ArrayList<>(postings);
+        Map<MaterialEntity, List<ArticlePromoInfoEntity>> materialArticlesMap = preparationService.getMaterialArticlesMap();
 
         boolean isNotFullReport = checkUserRolesForFullReport();
 
         List<SummaryOfMaterialModel> summaryOfMaterials = new ArrayList<>();
+        List<AveragePricePerMeterLdsp16Model> averagePricePerMeterLdsp1 = new ArrayList<>();
+        InProcessAtPeriod ordersPeriod = null;
         if (!isNotFullReport) {
             summaryOfMaterials = preparationService.calculateSummaryPerDay(postings);
+            averagePricePerMeterLdsp1 = preparationService.calculateAveragePriceLdsp16PerMeter(postings);
+            ordersPeriod = preparationService.calculateOrdersPeriod(postings);
         }
 
         int nextRowIndex = 1;
         try (Workbook wb = initialWorkBook(isNotFullReport); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-         //   nextRowIndex = fillSheetLDCPRaspil(wb, groupedPostings.get(Marketplace.OZON), materialArticlesMap, isNotFullReport);
             nextRowIndex = fillSheetWithSortingByMaterial(mutablePostings, materialArticlesMap, wb, isNotFullReport, nextRowIndex);
-            fillSheetBySummary(wb, summaryOfMaterials, isNotFullReport);
+            int nextRowIndexSummaryTable = fillSheetBySummary(wb, summaryOfMaterials, isNotFullReport, ordersPeriod);
+            fillSheetByAveragePricePerMeterLdsp16(wb, averagePricePerMeterLdsp1, isNotFullReport, nextRowIndexSummaryTable);
             if (Objects.nonNull(wrongPostings) && !wrongPostings.isEmpty()) {
                 nextRowIndex = fillSheetByWrongPostings(wb, wrongPostings, nextRowIndex);
             }
@@ -114,19 +124,25 @@ public class PostingExcelReportGenerator {
         }
     }
 
-    public void fillSheetBySummary(Workbook wb, List<SummaryOfMaterialModel> summaryOfMaterials, boolean isNotFullReport) {
+    private int fillSheetBySummary(Workbook wb, List<SummaryOfMaterialModel> summaryOfMaterials, boolean isNotFullReport, InProcessAtPeriod ordersPeriod) {
         if (isNotFullReport) {
-            return;
+            return 1;
         }
         Sheet sheet = wb.getSheet(SHEET_NAME);
         int headerIndexRow = 1;
         Row row = sheet.getRow(headerIndexRow);
-        fillHeaderSummary(wb, row, CommonUtils.formatInstantToDateString(Instant.now()), COLUMN_NUMBER_OF_SUMMARY_TABLE);
+
+        String fromDate = CommonUtils.formatLocalDateTimeToDateString(ordersPeriod.getFromInProcessAt());
+        String toDate = CommonUtils.formatLocalDateTimeToDateString(ordersPeriod.getToInProcessAt());
+        String mainHeader = String.format(SUMMARY_DATES_FORMAT, fromDate, toDate);
+
+        fillHeaderSummary(wb, row, mainHeader, COLUMN_NUMBER_OF_SUMMARY_TABLE, true);
+
         row = sheet.getRow(++headerIndexRow);
-        fillHeaderSummary(wb, row, "Материал", COLUMN_NUMBER_OF_SUMMARY_TABLE);
-        fillHeaderSummary(wb, row, "М2", COLUMN_NUMBER_OF_SUMMARY_TABLE + 1);
-        fillHeaderSummary(wb, row, "Общая сумма продаж", COLUMN_NUMBER_OF_SUMMARY_TABLE + 2);
-        fillHeaderSummary(wb, row, "Средняя цена за М2", COLUMN_NUMBER_OF_SUMMARY_TABLE + 3);
+        fillHeaderSummary(wb, row, "Материал", COLUMN_NUMBER_OF_SUMMARY_TABLE, false);
+        fillHeaderSummary(wb, row, "М2", COLUMN_NUMBER_OF_SUMMARY_TABLE + 1, false);
+        fillHeaderSummary(wb, row, "Общая сумма продаж", COLUMN_NUMBER_OF_SUMMARY_TABLE + 2, false);
+        fillHeaderSummary(wb, row, "Средняя цена за М2", COLUMN_NUMBER_OF_SUMMARY_TABLE + 3, false);
 
         int payloadInderRow = 3;
         for (SummaryOfMaterialModel summary : summaryOfMaterials) {
@@ -157,6 +173,51 @@ public class PostingExcelReportGenerator {
 
             payloadInderRow++;
         }
+        return payloadInderRow;
+    }
+
+    private int fillSheetByAveragePricePerMeterLdsp16(Workbook wb,
+                                                      List<AveragePricePerMeterLdsp16Model> averagePricePerMeterLdsp16,
+                                                      boolean isNotFullReport,
+                                                      int nextRowIndex) {
+        if (isNotFullReport) {
+            return nextRowIndex;
+        }
+        Sheet sheet = wb.getSheet(SHEET_NAME);
+        int headerIndexRow = nextRowIndex + 2;
+        Row row = sheet.getRow(headerIndexRow);
+        if (Objects.isNull(row)) {
+            row = sheet.createRow(headerIndexRow);
+        }
+        fillHeaderSummary(wb, row, "Средняя цена за метр ЛДСП 16 по маркетплейсам", COLUMN_NUMBER_OF_SUMMARY_TABLE, true);
+        headerIndexRow = headerIndexRow + 1;
+        row = sheet.getRow(headerIndexRow);
+        if (Objects.isNull(row)) {
+            row = sheet.createRow(headerIndexRow);
+        }
+        fillHeaderSummary(wb, row, "Маркетплейс", COLUMN_NUMBER_OF_SUMMARY_TABLE, false);
+        fillHeaderSummary(wb, row, "Цена за М2", COLUMN_NUMBER_OF_SUMMARY_TABLE + 1, false);
+
+        int payloadInderRow = headerIndexRow + 1;
+        for (AveragePricePerMeterLdsp16Model averageInfo : averagePricePerMeterLdsp16) {
+            int columnNumber = COLUMN_NUMBER_OF_SUMMARY_TABLE;
+            row = sheet.getRow(payloadInderRow);
+            if (Objects.isNull(row)) {
+                row = sheet.createRow(payloadInderRow);
+            }
+            Cell cell = row.createCell(columnNumber);
+            cell.setCellValue(averageInfo.getMarketplace().name());
+            cell.setCellStyle(getBorderedStyle(wb));
+            sheet.setColumnWidth(columnNumber, 7000);
+
+            Cell cellOfM2 = row.createCell(++columnNumber);
+            cellOfM2.setCellValue(averageInfo.getAveragePrice().doubleValue());
+            cellOfM2.setCellStyle(getBorderedStyle(wb));
+            sheet.setColumnWidth(columnNumber, 7000);
+
+            payloadInderRow++;
+        }
+        return payloadInderRow;
     }
 
     private int fillSheetWithSortingByMaterial(List<PostingInfoModel> groupedPostings,
@@ -164,16 +225,11 @@ public class PostingExcelReportGenerator {
                                                Workbook wb,
                                                boolean isNotFullReport,
                                                int nextRowIndex) {
-      //  for (Map.Entry<Marketplace, List<PostingInfoModel>> entry : groupedPostings.entrySet()) {
-           // Marketplace marketplace = entry.getKey();
-           // List<PostingInfoModel> mutablePostings = entry.getValue();
-          //  nextRowIndex = createRowTitle(wb, nextRowIndex, marketplace.getValue());
-            for (MaterialEntity material : materialArticlesMap.keySet()) {
-                List<ArticlePromoInfoEntity> articles = materialArticlesMap.get(material);
-                nextRowIndex = fillSheetByMaterial(wb, groupedPostings, nextRowIndex, material, articles, isNotFullReport);
-            }
-            nextRowIndex = fillSheetRemaining(wb, groupedPostings, nextRowIndex, isNotFullReport);
-      //  }
+        for (MaterialEntity material : materialArticlesMap.keySet()) {
+            List<ArticlePromoInfoEntity> articles = materialArticlesMap.get(material);
+            nextRowIndex = fillSheetByMaterial(wb, groupedPostings, nextRowIndex, material, articles, isNotFullReport);
+        }
+        nextRowIndex = fillSheetRemaining(wb, groupedPostings, nextRowIndex, isNotFullReport);
         return nextRowIndex;
     }
 
@@ -373,10 +429,14 @@ public class PostingExcelReportGenerator {
         var valuesMap = getValuesCellsMap(isNotFullReport);
         valuesMap.forEach((j, function) -> {
             Object value = function.apply(posting);
+            if (value == null) {
+                value = EMPTY_STRING;
+            }
             switch (value) {
                 case Number number -> row.createCell(j).setCellValue(number.doubleValue());
                 case String str -> row.createCell(j).setCellValue(str);
                 case Marketplace marketplace -> row.createCell(j).setCellValue(marketplace.getValue());
+                case OrderStatus orderStatus -> row.createCell(j).setCellValue(orderStatus.name());
                 default -> row.createCell(j).setCellValue("");
             }
         });
@@ -395,15 +455,16 @@ public class PostingExcelReportGenerator {
         return rowIndex;
     }
 
-    private void fillHeaderSummary(Workbook wb, Row row, String value, int index) {
+    private void fillHeaderSummary(Workbook wb, Row row, String value, int index, boolean isTitle) {
         Cell cell = row.createCell(index);
-        if (row.getRowNum() == 1) {
+        if (isTitle) {
+            row.setHeightInPoints(25);
             Sheet sheet = wb.getSheet(SHEET_NAME);
-            sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), 13, 16));
+            sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), COLUMN_NUMBER_OF_SUMMARY_TABLE, COLUMN_NUMBER_OF_SUMMARY_TABLE + 3));
         }
         cell.setCellValue(value);
 
-        CellStyle style = row.getRowNum() == 1 ? getTitleStyle(wb) : getBorderedStyle(wb);
+        CellStyle style = isTitle ? getTitleStyle(wb) : getBorderedStyle(wb);
         cell.setCellStyle(style);
     }
 
@@ -419,7 +480,7 @@ public class PostingExcelReportGenerator {
     private Map<Integer, String> getHeaders(boolean isNotFull) {
         if (isNotFull) {
             return HEADERS_MAIN_FULL_NAMING_MAP.entrySet().stream()
-                    .filter(entry -> SHORT_KEYS.contains(entry.getKey()))
+                    .filter(entry -> NOT_ADMIN_REPORT_COLUMNS.contains(entry.getKey()))
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
         return HEADERS_MAIN_FULL_NAMING_MAP;
@@ -428,7 +489,7 @@ public class PostingExcelReportGenerator {
     private Map<Integer, Function<PostingInfoModel, Object>> getValuesCellsMap(boolean isNotFull) {
         if (isNotFull) {
             return VALUES_CELLS_MAP.entrySet().stream()
-                    .filter(entry -> SHORT_KEYS.contains(entry.getKey()))
+                    .filter(entry -> NOT_ADMIN_REPORT_COLUMNS.contains(entry.getKey()))
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
         return VALUES_CELLS_MAP;

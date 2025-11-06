@@ -63,6 +63,9 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
                     shop.getName(), request.getYandexTo()));
         }
         List<Long> orderIds = shipments.getFirst().getOrderIds();
+        if (orderIds.isEmpty()) {
+            return Collections.emptyList();
+        }
         GetOrdersByIdsResponse response = client.getOrdersByIds(encryptService.decrypt(shop.getApiKey()), shop.getClientId(), orderIds);
         List<Order> originalOrders = response.getOrders();
         List<Order> splittedOrders = orderSplitter.splitOrders(originalOrders);
@@ -82,11 +85,14 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
     }
 
     @Override
-    public List<byte[]> getPackagesByPostingNumbers(ShopEntity shop, List<PostingInfoModel> postings) {
+    public List<byte[]> getPackagesByPostings(ShopEntity shop, List<PostingInfoModel> postings) {
         List<byte[]> packages = new ArrayList<>();
         List<String> orderIds = postings.stream()
                 .map(PostingInfoModel::getPostingNumber)
+                .distinct()
                 .toList();
+
+        log.info("Попытка получить этикетки по заказам YANDEX: {}", orderIds);
 
         for (int i = 0; i < orderIds.size(); i += MAX_ID_ORDERS_IN_REQUEST) {
             List<String> batch = orderIds.subList(i, Math.min(i + MAX_ID_ORDERS_IN_REQUEST, orderIds.size()));

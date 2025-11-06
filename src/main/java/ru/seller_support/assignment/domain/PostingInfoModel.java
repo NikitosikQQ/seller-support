@@ -6,8 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 import ru.seller_support.assignment.domain.enums.Marketplace;
+import ru.seller_support.assignment.domain.enums.OrderStatus;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
 @Builder(toBuilder = true)
@@ -19,6 +20,7 @@ public class PostingInfoModel {
     private String shopName;
     private Integer palletNumber;
     private String postingNumber;
-    private Instant inProcessAt;
+    private LocalDateTime inProcessAt;
+    private OrderStatus orderStatus;
     private ProductModel product;
 }

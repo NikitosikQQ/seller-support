@@ -4,17 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Автоматизация отчетности</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
+    <!-- В <head> -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- Русская локаль -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
     <link rel="stylesheet" href="/styles/panel.css">
     <link rel="stylesheet" href="/styles/modal-window.css">
     <link rel="stylesheet" href="/styles/autocomplete.css">
     <link rel="stylesheet" href="/styles/loader.css">
     <link rel="stylesheet" href="/styles/smart-modal.css">
+    <link rel="stylesheet" href="/styles/orders.css">
+    <link rel="stylesheet" href="/styles/chpu.css">
+    <link rel="stylesheet" href="/styles/work-monitoring.css">
+    <link rel="stylesheet" href="/styles/pila.css">
     <script src="/scripts/panel.js" type="module" defer></script>
     <script src="/scripts/users-panel.js" type="module" defer></script>
     <script src="/scripts/reports-panel.js" type="module" defer></script>
     <script src="/scripts/article-panel.js" type="module" defer></script>
     <script src="/scripts/material-panel.js" type="module" defer></script>
     <script src="/scripts/comment-panel.js", type="module" defer></script>
+    <script src="/scripts/orders.js", type="module" defer></script>
+    <script src="/scripts/chpu.js", type="module" defer></script>
+    <script src="/scripts/pila.js", type="module" defer></script>
+    <script src="/scripts/colors.js", type="module" defer></script>
+    <script src="/scripts/workplaces.js", type="module" defer></script>
+    <script src="/scripts/work-monitoring.js", type="module" defer></script>
+    <script src="/scripts/upakovka-mebel.js", type="module" defer></script>
 </head>
 <body>
 <div id="admin-container">
@@ -23,10 +45,17 @@
         <ul>
             <li><a href="#" id="reports-section">Отчеты</a></li>
             <li><a href="#" id="users-section", style="display:none;">Пользователи</a></li>
+            <li><a href="#" id="workplaces-section", style="display:none;">Рабочие места</a></li>
+            <li><a href="#" id="orders-section", style="display:none;">Заказы</a></li>
+            <li><a href="#" id="work-monitoring-section", style="display:none;">Мониторинг выполненной работы</a></li>
+            <li><a href="#" id="chpu-section", style="display:none;">ЧПУ</a></li>
+            <li><a href="#" id="pila-section", style="display:none;">Пила</a></li>
+            <li><a href="#" id="upakovka-mebel-section", style="display:none;">Упаковка мебели</a></li>
             <li><a href="#" id="shops-section", style="display:none;">Магазины</a></li>
             <li><a href="#" id="articles-section", style="display:none;">Артикулы</a></li>
             <li><a href="#" id="materials-section", style="display:none;">Материалы</a></li>
             <li><a href="#" id="comments-section", style="display:none;">Комментарии к заказам</a></li>
+            <li><a href="#" id="colors-section", style="display:none;">Цвета</a></li>
         </ul>
         <button id="logout-btn">Выйти</button>
     </div>

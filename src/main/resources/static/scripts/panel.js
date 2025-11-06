@@ -4,6 +4,13 @@ import {openModal} from './reports-panel.js'
 import {fetchArticles} from "./article-panel.js";
 import {fetchMaterials} from "./material-panel.js";
 import {fetchComments} from "./comment-panel.js";
+import {openOrdersPanel} from "./orders.js";
+import {openChpuPanel} from "./chpu.js";
+import {fetchColors} from "./colors.js";
+import {fetchWorkplaces} from "./workplaces.js";
+import {openWorkMonitoringPanel} from "./work-monitoring.js";
+import {openPilaPanel} from "./pila.js";
+import {openUpakovkaPanel} from "./upakovka-mebel.js";
 
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -18,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         showAdminMenu();
     } else if (roles.includes('ROLE_MANAGER')) {
         showManagerMenu();
-    } else if (roles.includes('ROLE_USER')) {
+    } else if (roles.includes('ROLE_USER') || roles.includes('ROLE_EMPLOYEE')) {
         showUserMenu();
     } else {
         alert('У вас нет доступа');
@@ -27,11 +34,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Слушаем клики по разделам меню
     document.getElementById('users-section').addEventListener('click', () => loadSection('admin'));
+    document.getElementById('orders-section').addEventListener('click', () => loadSection('orders'));
     document.getElementById('shops-section').addEventListener('click', () => loadSection('shops'));
     document.getElementById('reports-section').addEventListener('click', () => loadSection('user'));
     document.getElementById('articles-section').addEventListener('click', () => loadSection('articles'));
     document.getElementById('materials-section').addEventListener('click', () => loadSection('materials'));
     document.getElementById('comments-section').addEventListener('click', () => loadSection('comments'));
+    document.getElementById('chpu-section').addEventListener('click', () => loadSection('chpu'));
+    document.getElementById('colors-section').addEventListener('click', () => loadSection('colors'));
+    document.getElementById('workplaces-section').addEventListener('click', () => loadSection('workplaces'));
+    document.getElementById('work-monitoring-section').addEventListener('click', () => loadSection('work-monitoring'));
+    document.getElementById('pila-section').addEventListener('click', () => loadSection('pila'));
+    document.getElementById('upakovka-mebel-section').addEventListener('click', () => loadSection('mebel'));
 
     document.getElementById('logout-btn').addEventListener('click', () => {
         localStorage.removeItem('token');
@@ -54,6 +68,20 @@ async function loadSection(section) {
         await fetchMaterials(true);
     } else if (section === 'comments') {
         await fetchComments(true);
+    } else if (section === 'orders') {
+        await openOrdersPanel();
+    } else if (section === 'chpu') {
+        await openChpuPanel();
+    } else if (section === 'colors') {
+        await fetchColors(true)
+    } else if (section === 'workplaces') {
+        await fetchWorkplaces()
+    } else if (section === 'work-monitoring') {
+        await openWorkMonitoringPanel()
+    } else if (section === 'pila') {
+        await openPilaPanel()
+    } else if (section === 'mebel') {
+        await openUpakovkaPanel()
     }
 }
 
@@ -65,6 +93,13 @@ function showAdminMenu() {
     document.getElementById('articles-section').style.display = 'block';
     document.getElementById('materials-section').style.display = 'block'
     document.getElementById('comments-section').style.display = 'block';
+    document.getElementById('orders-section').style.display = 'block';
+    document.getElementById('chpu-section').style.display = 'block';
+    document.getElementById('colors-section').style.display = 'block';
+    document.getElementById('workplaces-section').style.display = 'block';
+    document.getElementById('work-monitoring-section').style.display = 'block';
+    document.getElementById('pila-section').style.display = 'block';
+    document.getElementById('upakovka-mebel-section').style.display = 'block';
     openReportsMenu();
 
 }
@@ -75,8 +110,15 @@ function showUserMenu() {
     document.getElementById('shops-section').style.display = 'none'; // Скрыть раздел "Магазины"
     document.getElementById('articles-section').style.display = 'none'; // Скрыть раздел артикулы
     document.getElementById('materials-section').style.display = 'none'; // Скрыть раздел артикулы
-    document.getElementById('reports-section').style.display = 'block'; // Показать только "Отчеты"
+    document.getElementById('reports-section').style.display = 'none'; // Показать только "Отчеты"
     document.getElementById('comments-section').style.display = 'none';
+    document.getElementById('orders-section').style.display = 'none';
+    document.getElementById('chpu-section').style.display = 'block';
+    document.getElementById('colors-section').style.display = 'none';
+    document.getElementById('workplaces-section').style.display = 'none';
+    document.getElementById('work-monitoring-section').style.display = 'block';
+    document.getElementById('pila-section').style.display = 'block';
+    document.getElementById('upakovka-mebel-section').style.display = 'block';
     openReportsMenu();
 }
 
@@ -88,6 +130,12 @@ function showManagerMenu() {
     document.getElementById('materials-section').style.display = 'block';
     document.getElementById('reports-section').style.display = 'block';
     document.getElementById('comments-section').style.display = 'block';
+    document.getElementById('chpu-section').style.display = 'block';
+    document.getElementById('colors-section').style.display = 'block';
+    document.getElementById('workplaces-section').style.display = 'block';
+    document.getElementById('work-monitoring-section').style.display = 'block';
+    document.getElementById('pila-section').style.display = 'block';
+    document.getElementById('upakovka-mebel-section').style.display = 'block';
     openReportsMenu();
 }
 
@@ -109,7 +157,7 @@ function openReportsMenu() {
 }
 
 // Функция для декодирования токена и получения ролей
-function getRolesFromToken(token) {
+export function getRolesFromToken(token) {
     const payload = token.split('.')[1];
     const decoded = JSON.parse(atob(payload));
     return decoded.roles || [];
