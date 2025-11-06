@@ -121,6 +121,10 @@ function renderWorkplaceSelect(container, workplaces, isMandatory) {
 /* ------------------- ЗАГРУЗКА ДАННЫХ ------------------- */
 async function loadActualCapacity(workplace) {
     const tableContainer = document.getElementById('work-monitoring-table-container');
+    if (!tableContainer) {
+        console.warn('[auto-refresh] таблица отсутствует в DOM — пропуск обновления');
+        return;
+    }
     tableContainer.innerHTML = '<div>Загрузка...</div>';
 
     try {
