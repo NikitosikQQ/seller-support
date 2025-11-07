@@ -25,6 +25,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import static ru.seller_support.assignment.domain.enums.OrderStatus.CREATED;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -40,8 +42,8 @@ public class OrderPackageService {
 
     public byte[] downloadOrderPackages(Boolean onlyPackagesMaterial) {
         var orders = onlyPackagesMaterial
-                ? findOrdersWithOnlyPackagingMaterials()
-                : orderService.findByStatusIn(OrderStatus.STATUSES_FOR_DOWNLOAD_PACKAGES);
+                ? findOrdersForDownloadPackaging(true, List.of(CREATED))
+                : findOrdersForDownloadPackaging(false, OrderStatus.STATUSES_FOR_DOWNLOAD_PACKAGES.stream().toList());
 
         if (CollectionUtils.isEmpty(orders)) {
             return null;
@@ -112,8 +114,8 @@ public class OrderPackageService {
                         String.format("Нет обработчика маркетплейса %s", marketplace)));
     }
 
-    private List<OrderEntity> findOrdersWithOnlyPackagingMaterials() {
-        var materials = materialService.findAllOnlyPackaging(true);
+    private List<OrderEntity> findOrdersForDownloadPackaging(boolean isOnlyPackagesMaterials, List<OrderStatus> statuses) {
+        var materials = materialService.findAllOnlyPackaging(isOnlyPackagesMaterials);
         var materialNames = materials.stream()
                 .map(MaterialEntity::getName)
                 .toList();
@@ -122,7 +124,7 @@ public class OrderPackageService {
         }
 
         var query = SearchOrderRequest.builder()
-                .statuses(List.of(OrderStatus.CREATED))
+                .statuses(statuses)
                 .materialNames(materialNames)
                 .build();
 
