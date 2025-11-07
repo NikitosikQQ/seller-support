@@ -29,15 +29,15 @@ public class EmployeeController {
     private final EmployeeProcessedCapacityMapper mapper;
 
     @PostMapping(path = "/work/process")
-    public ResponseEntity<Void> processWork(@Valid @RequestBody ProcessEmployeeWorkRequest request) {
+    public ResponseEntity<String> processWork(@Valid @RequestBody ProcessEmployeeWorkRequest request) {
         log.info("Производится процесс обработки заказа: {} ", request);
-        var wasUpdated = employeeWorkProcessService.processWork(request);
-        if (wasUpdated) {
+        var result = employeeWorkProcessService.processWork(request);
+        if (result.updated()) {
             log.info("Обработка заказа успешно завершена. Статус обновлен: {} ", request);
         } else {
             log.info("Обработка заказа завершена без обновления статуса: {} ", request);
         }
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body(result.alert());
     }
 
     @GetMapping(path = "/capacity/actual")

@@ -17,6 +17,8 @@ import ru.seller_support.assignment.service.order.OrderStatusHandler;
 
 import java.util.List;
 
+import static ru.seller_support.assignment.domain.enums.Workplace.UPAKOVSHIK_WORKPLACES;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -24,12 +26,13 @@ public class EmployeeWorkProcessService {
 
     private final OrderStatusHandler orderStatusHandler;
     private final OrderService orderService;
+    private final OrderAlertService orderAlertService;
     private final EmployeeCapacityService employeeCapacityService;
 
     private final EmployeeValidationService employeeValidationService;
 
     @Transactional
-    public boolean processWork(ProcessEmployeeWorkRequest request) {
+    public EmployeeWorkResult processWork(ProcessEmployeeWorkRequest request) {
         employeeValidationService.validateEmployees(request.getEmployees());
         var employeesCount = request.getEmployees().size();
         return employeesCount > 1
@@ -37,10 +40,10 @@ public class EmployeeWorkProcessService {
                 : processWorkForOneEmployee(request.getOrderNumber(), request.getEmployees().getFirst(), request.getOperationType());
     }
 
-    private boolean processWorkForOneEmployee(String orderNumber, EmployeeDto employee, CapacityOperationType operationType) {
+    private EmployeeWorkResult processWorkForOneEmployee(String orderNumber, EmployeeDto employee, CapacityOperationType operationType) {
         var order = orderService.findByNumber(orderNumber);
         if (order == null) {
-            return false;
+            return EmployeeWorkResult.notUpdated();
         }
 
         var previousOrderStatus = order.getStatus();
@@ -56,17 +59,24 @@ public class EmployeeWorkProcessService {
                     Workplace.fromValue(employee.getWorkplace()),
                     operationType);
         }
-        return wasUpdated;
+        var workplace = Workplace.fromValue(employee.getWorkplace());
+
+        if (UPAKOVSHIK_WORKPLACES.contains(workplace)) {
+            var alert = orderAlertService.getAlertByOrder(order);
+            return new EmployeeWorkResult(wasUpdated, alert);
+        }
+
+        return new EmployeeWorkResult(wasUpdated, null);
     }
 
-    private boolean processWorkForPilaEmployees(ProcessEmployeeWorkRequest request) {
+    private EmployeeWorkResult processWorkForPilaEmployees(ProcessEmployeeWorkRequest request) {
         var employees = request.getEmployees();
         var orderNumber = request.getOrderNumber();
         var operationType = request.getOperationType();
 
         var order = orderService.findByNumber(orderNumber);
         if (order == null) {
-            return false;
+            return EmployeeWorkResult.notUpdated();
         }
         var previousOrderStatus = order.getStatus();
 
@@ -76,14 +86,14 @@ public class EmployeeWorkProcessService {
 
         if (wasUpdated && (needApplyFine || operationType == CapacityOperationType.EARNING)) {
             employees.forEach(emp ->
-                employeeCapacityService.calculateAndSaveEmployeeCapacity(
-                        order,
-                        emp.getUsername(),
-                        Workplace.fromValue(emp.getWorkplace()),
-                        operationType)
+                    employeeCapacityService.calculateAndSaveEmployeeCapacity(
+                            order,
+                            emp.getUsername(),
+                            Workplace.fromValue(emp.getWorkplace()),
+                            operationType)
             );
         }
-        return wasUpdated;
+        return new EmployeeWorkResult(wasUpdated, null);
     }
 
     private boolean updateOrderStatusIfNeededAndSave(OrderEntity order, List<EmployeeDto> employees, CapacityOperationType operationType) {
@@ -92,5 +102,11 @@ public class EmployeeWorkProcessService {
                 : OrderStatus.BRAK;
         var result = orderStatusHandler.updateStatusAndSave(order, newStatus, employees);
         return result.wasUpdate();
+    }
+
+    public record EmployeeWorkResult(boolean updated, String alert) {
+        public static EmployeeWorkResult notUpdated() {
+            return new EmployeeWorkResult(false, null);
+        }
     }
 }

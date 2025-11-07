@@ -102,7 +102,7 @@ public class OzonAdapter extends MarketplaceAdapter {
                 .filter(correctNumbers::contains)
                 .toList();
 
-        log.info("Попытка получить этикетки по заказам OZON: {}", postingNumbers);
+        log.info("Попытка получить этикетки по заказам OZON для магазина {}: {}", shop.getName(), postingNumbers);
 
         for (int i = 0; i < postingNumbers.size(); i += MAX_POSTING_NUMBERS_IN_REQUEST) {
             List<String> batch = postingNumbers.subList(i, Math.min(i + MAX_POSTING_NUMBERS_IN_REQUEST, postingNumbers.size()));
