@@ -11,6 +11,7 @@ import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.enums.OrderStatus;
 import ru.seller_support.assignment.service.mapper.OrderMapper;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,6 +24,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderChangesHistoryRepository changesHistoryRepository;
     private final OrderMapper orderMapper;
+    private final Clock clock;
 
     @Transactional(readOnly = true)
     public OrderEntity findByNumber(String number) {
@@ -32,11 +34,6 @@ public class OrderService {
     @Transactional(readOnly = true)
     public List<OrderEntity> findByNumbersIn(Collection<String> numbers) {
         return orderRepository.findByNumberIn(numbers);
-    }
-
-    @Transactional(readOnly = true)
-    public List<OrderEntity> findByStatusIn(Collection<OrderStatus> statuses) {
-        return orderRepository.findByStatusIn(statuses);
     }
 
     @Transactional
@@ -59,10 +56,17 @@ public class OrderService {
             return Collections.emptyList();
         }
 
+        var now = LocalDateTime.now(clock);
+
+        toSave.forEach(order -> {
+            order.setCreatedAt(now);
+            order.setUpdatedAt(now);
+        });
+
         var saved = orderRepository.saveAll(toSave);
 
         var initialHistory = saved.stream()
-                .map(orderMapper::toInitialOrderHistory)
+                .map(it -> orderMapper.toInitialOrderHistory(it, now))
                 .toList();
         changesHistoryRepository.saveAll(initialHistory);
 

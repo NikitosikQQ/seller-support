@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.hibernate.annotations.CreationTimestamp;
 import ru.seller_support.assignment.domain.enums.OrderStatus;
 import ru.seller_support.assignment.domain.enums.Workplace;
 
@@ -37,7 +36,6 @@ public class OrderChangesHistoryEntity {
     private Workplace workplace;
 
     @Column(name = "created_at")
-    @CreationTimestamp
     private LocalDateTime createdAt;
 
     @Column(name = "order_id", nullable = false)

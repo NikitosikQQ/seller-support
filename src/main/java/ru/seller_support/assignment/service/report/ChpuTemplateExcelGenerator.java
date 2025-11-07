@@ -12,7 +12,7 @@ import ru.seller_support.assignment.adapter.postgres.entity.MaterialEntity;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.ProductModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
-import ru.seller_support.assignment.service.OrderParamsCalculatorService;
+import ru.seller_support.assignment.service.order.OrderParamsCalculatorService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

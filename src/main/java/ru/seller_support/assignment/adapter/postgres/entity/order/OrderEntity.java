@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import ru.seller_support.assignment.domain.enums.Marketplace;
 import ru.seller_support.assignment.domain.enums.OrderStatus;
 
@@ -88,10 +86,8 @@ public class OrderEntity {
     private String externalOrderNumber;
 
     @Column(name = "created_at")
-    @CreationTimestamp
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    @UpdateTimestamp
     private LocalDateTime updatedAt;
 }

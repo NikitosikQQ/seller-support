@@ -109,7 +109,8 @@ async function createFiltersSection() {
             materialName: materialSelect.choices.getValue(true) || null,
             colorNumber,
             excludeMaterialNames: packagingMaterials,
-            statuses: ['CREATED']
+            statuses: ['CREATED'],
+            sortingType: 'Пила'
         });
     });
 

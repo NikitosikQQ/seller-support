@@ -12,6 +12,8 @@ import ru.seller_support.assignment.domain.enums.OrderStatus;
 import ru.seller_support.assignment.domain.enums.Workplace;
 import ru.seller_support.assignment.service.mapper.OrderMapper;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static ru.seller_support.assignment.service.mapper.OrderMapper.DEFAULT_SYSTEM_AUTHOR;
@@ -24,6 +26,7 @@ public class OrderStatusHandler {
     private final OrderRepository orderRepository;
     private final OrderChangesHistoryRepository orderChangesHistoryRepository;
     private final OrderMapper orderMapper;
+    private final Clock clock;
 
     @Transactional
     public OrderUpdateStatusResult updateStatusAndSave(OrderEntity order,
@@ -40,6 +43,7 @@ public class OrderStatusHandler {
 
     private OrderEntity updateStatusWithHistory(OrderEntity order, OrderStatus newStatus, List<EmployeeDto> employees) {
         order.setStatus(newStatus);
+        order.setUpdatedAt(LocalDateTime.now(clock));
 
         employees.forEach(employee ->
                 saveOrderHistory(order, employee.getUsername(), Workplace.fromValue(employee.getWorkplace()
@@ -56,7 +60,8 @@ public class OrderStatusHandler {
 
     private void saveOrderHistory(OrderEntity order, String author, Workplace workplace) {
         var orderHistory = orderMapper.toOrderHistory(order, author, workplace);
-        orderChangesHistoryRepository.save(orderHistory);
+
+        orderChangesHistoryRepository.save(orderHistory.setCreatedAt(LocalDateTime.now(clock)));
     }
 
 

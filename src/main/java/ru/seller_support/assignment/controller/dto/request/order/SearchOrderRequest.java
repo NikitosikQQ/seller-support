@@ -43,4 +43,6 @@ public class SearchOrderRequest {
     LocalDateTime fromInProcessAt;
 
     List<String> excludeMaterialNames;
+
+    String sortingType;
 }

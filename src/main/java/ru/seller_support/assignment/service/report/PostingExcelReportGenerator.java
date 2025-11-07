@@ -16,7 +16,7 @@ import ru.seller_support.assignment.domain.SummaryOfMaterialModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
 import ru.seller_support.assignment.domain.enums.OrderStatus;
 import ru.seller_support.assignment.domain.enums.SortingPostingByParam;
-import ru.seller_support.assignment.service.OrderParamsCalculatorService;
+import ru.seller_support.assignment.service.order.OrderParamsCalculatorService;
 import ru.seller_support.assignment.util.CommonUtils;
 import ru.seller_support.assignment.util.SecurityUtils;
 

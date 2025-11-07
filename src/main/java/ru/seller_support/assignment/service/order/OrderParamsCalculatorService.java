@@ -1,4 +1,4 @@
-package ru.seller_support.assignment.service;
+package ru.seller_support.assignment.service.order;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +7,7 @@ import ru.seller_support.assignment.adapter.postgres.entity.ArticlePromoInfoEnti
 import ru.seller_support.assignment.adapter.postgres.entity.MaterialEntity;
 import ru.seller_support.assignment.domain.*;
 import ru.seller_support.assignment.domain.enums.Marketplace;
+import ru.seller_support.assignment.service.ArticlePromoInfoService;
 import ru.seller_support.assignment.util.CommonUtils;
 
 import java.math.BigDecimal;

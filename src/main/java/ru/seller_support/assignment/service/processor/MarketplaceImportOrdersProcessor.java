@@ -12,10 +12,10 @@ import ru.seller_support.assignment.domain.GetPostingsModel;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
 import ru.seller_support.assignment.exception.DuplicateOrdersFoundException;
-import ru.seller_support.assignment.service.OrderParamsCalculatorService;
 import ru.seller_support.assignment.service.ShopService;
 import ru.seller_support.assignment.service.comment.CommentService;
 import ru.seller_support.assignment.service.order.OrderFilterService;
+import ru.seller_support.assignment.service.order.OrderParamsCalculatorService;
 import ru.seller_support.assignment.service.order.OrderService;
 
 import java.time.Duration;

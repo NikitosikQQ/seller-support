@@ -37,7 +37,15 @@ import static ru.seller_support.assignment.adapter.postgres.entity.order.OrderSp
 @RequiredArgsConstructor
 public class OrderSearchService {
 
+    private static final String DEFAULT_SORT_NAME = "По умолчанию";
     private static final Sort SORT_IN_PROCESS_AT_ASC = Sort.by(Sort.Direction.ASC, "inProcessAt");
+    private static final Sort SORT_AREA_IN_METERS = Sort.by(Sort.Direction.DESC, "areaInMeters")
+            .and(Sort.by(Sort.Direction.DESC, "length")
+                    .and(Sort.by(Sort.Direction.DESC, "width")));
+
+    private static final Map<String, Sort> SORT_DIRECTIONS_TYPE_MAP = Map.of(
+            "Пила", SORT_AREA_IN_METERS,
+            "По умолчанию", SORT_IN_PROCESS_AT_ASC);
 
     private final OrderRepository orderRepository;
     private final OrderChangesHistoryRepository orderHistoryRepository;
@@ -53,7 +61,9 @@ public class OrderSearchService {
     }
 
     public Page<OrderEntity> search(SearchOrderRequest query) {
-        Pageable pageable = PageRequest.of(query.getPage(), query.getSize(), SORT_IN_PROCESS_AT_ASC);
+        String sortingType = Objects.isNull(query.getSortingType()) ? DEFAULT_SORT_NAME : query.getSortingType();
+        var sortDirection = SORT_DIRECTIONS_TYPE_MAP.getOrDefault(sortingType, SORT_IN_PROCESS_AT_ASC);
+        Pageable pageable = PageRequest.of(query.getPage(), query.getSize(), sortDirection);
 
         Specification<OrderEntity> spec = generateSpecFromSearchQuery(query);
 

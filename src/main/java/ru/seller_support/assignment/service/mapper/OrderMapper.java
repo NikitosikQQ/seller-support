@@ -15,6 +15,7 @@ import ru.seller_support.assignment.domain.enums.Workplace;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
@@ -61,12 +62,12 @@ public interface OrderMapper {
     ProductModel toProduct(OrderEntity entity);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "createdAt", source = "now")
     @Mapping(target = "workplace", ignore = true)
     @Mapping(target = "author", constant = DEFAULT_SYSTEM_AUTHOR)
-    @Mapping(target = "orderId", source = "id")
-    @Mapping(target = "orderNumber", source = "number")
-    OrderChangesHistoryEntity toInitialOrderHistory(OrderEntity entity);
+    @Mapping(target = "orderId", source = "entity.id")
+    @Mapping(target = "orderNumber", source = "entity.number")
+    OrderChangesHistoryEntity toInitialOrderHistory(OrderEntity entity, LocalDateTime now);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

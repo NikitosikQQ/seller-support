@@ -69,9 +69,11 @@ public class OzonAdapter extends MarketplaceAdapter {
             responses.add(response);
         }
 
+
         List<Posting> postingOriginalResponse = responses.stream()
                 .map(response -> response.getResult().getPostings())
                 .flatMap(List::stream)
+                .filter(order -> order.getInProcessAt().isAfter(request.getFrom()))
                 .toList();
 
         log.info("Успешно получены отправления для {} в количестве {}",
