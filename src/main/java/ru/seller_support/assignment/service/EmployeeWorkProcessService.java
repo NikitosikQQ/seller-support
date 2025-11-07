@@ -43,7 +43,7 @@ public class EmployeeWorkProcessService {
     private EmployeeWorkResult processWorkForOneEmployee(String orderNumber, EmployeeDto employee, CapacityOperationType operationType) {
         var order = orderService.findByNumber(orderNumber);
         if (order == null) {
-            return EmployeeWorkResult.notUpdated();
+            return EmployeeWorkResult.notUpdated(String.format("Не найдено заказа %s в системе seller-supp", orderNumber));
         }
 
         var previousOrderStatus = order.getStatus();
@@ -76,7 +76,7 @@ public class EmployeeWorkProcessService {
 
         var order = orderService.findByNumber(orderNumber);
         if (order == null) {
-            return EmployeeWorkResult.notUpdated();
+            return EmployeeWorkResult.notUpdated(String.format("Не найдено заказа %s в системе seller-supp", orderNumber));
         }
         var previousOrderStatus = order.getStatus();
 
@@ -107,6 +107,10 @@ public class EmployeeWorkProcessService {
     public record EmployeeWorkResult(boolean updated, String alert) {
         public static EmployeeWorkResult notUpdated() {
             return new EmployeeWorkResult(false, null);
+        }
+
+        public static EmployeeWorkResult notUpdated(String alert) {
+            return new EmployeeWorkResult(false, alert);
         }
     }
 }
