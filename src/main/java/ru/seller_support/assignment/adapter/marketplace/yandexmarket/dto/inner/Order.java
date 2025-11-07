@@ -22,4 +22,7 @@ public class Order {
 
     @JsonIgnore
     private boolean wrongBox;
+
+    @JsonIgnore
+    private String originalId;
 }

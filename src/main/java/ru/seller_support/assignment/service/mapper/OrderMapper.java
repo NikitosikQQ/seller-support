@@ -22,6 +22,7 @@ public interface OrderMapper {
 
     String DEFAULT_SYSTEM_AUTHOR = "SYSTEM";
 
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -44,8 +45,10 @@ public interface OrderMapper {
     @Mapping(target = "comment", source = "product.comment")
     @Mapping(target = "materialName", source = "product.materialName")
     @Mapping(target = "promoName", source = "product.promoName")
+    @Mapping(target = "externalOrderNumber", source = "originalOrderNumber")
     OrderEntity toNewEntity(PostingInfoModel model);
 
+    @Mapping(target = "originalOrderNumber", source = "entity.externalOrderNumber")
     @Mapping(target = "orderStatus", source = "entity.status")
     @Mapping(target = "product", source = "entity")
     @Mapping(target = "postingNumber", expression = "java(getOrderNumber(entity, needOriginalOrderNumber))")

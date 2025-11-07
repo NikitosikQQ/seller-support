@@ -27,6 +27,7 @@ public interface WildberriesAdapterMapper {
     @Mapping(target = "product", expression = "java(getProduct(order))")
     @Mapping(target = "inProcessAt", expression = "java(CommonUtils.toMoscowLocalDateTime(order.getCreatedAt()))")
     @Mapping(target = "postingNumber", source = "order.id")
+    @Mapping(target = "originalOrderNumber", ignore = true)
     PostingInfoModel toPostingInfoModel(Order order,
                                         ShopEntity shop);
 
@@ -37,6 +38,7 @@ public interface WildberriesAdapterMapper {
     @Mapping(target = "product", expression = "java(getWrongProduct(order))")
     @Mapping(target = "inProcessAt", expression = "java(CommonUtils.toMoscowLocalDateTime(order.getCreatedAt()))")
     @Mapping(target = "postingNumber", source = "order.id")
+    @Mapping(target = "originalOrderNumber", ignore = true)
     PostingInfoModel toWrongPostingInfoModel(Order order,
                                              ShopEntity shop);
 

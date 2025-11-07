@@ -84,6 +84,9 @@ public class OrderEntity {
     @Column(name = "material_name")
     private String materialName;
 
+    @Column(name = "external_order_number")
+    private String externalOrderNumber;
+
     @Column(name = "created_at")
     @CreationTimestamp
     private LocalDateTime createdAt;

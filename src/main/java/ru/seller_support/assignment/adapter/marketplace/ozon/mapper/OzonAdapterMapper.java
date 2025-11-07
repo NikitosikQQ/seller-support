@@ -27,6 +27,7 @@ public interface OzonAdapterMapper {
     @Mapping(target = "shopName", source = "shop.name")
     @Mapping(target = "product", expression = "java(getProduct(posting, shop))")
     @Mapping(target = "inProcessAt", expression = "java(CommonUtils.toMoscowLocalDateTime(posting.getInProcessAt()))")
+    @Mapping(target = "originalOrderNumber", source = "posting.postingNumber")
     PostingInfoModel toPostingInfoModel(Posting posting,
                                         ShopEntity shop);
 
@@ -36,6 +37,7 @@ public interface OzonAdapterMapper {
     @Mapping(target = "shopName", source = "shop.name")
     @Mapping(target = "product", expression = "java(getWrongProduct(posting, shop))")
     @Mapping(target = "inProcessAt", expression = "java(CommonUtils.toMoscowLocalDateTime(posting.getInProcessAt()))")
+    @Mapping(target = "originalOrderNumber", source = "posting.postingNumber")
     PostingInfoModel toWrongPostingInfoModel(Posting posting,
                                              ShopEntity shop);
 

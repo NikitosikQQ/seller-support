@@ -37,6 +37,7 @@ public class YandexMarketOrderSplitter {
             for (Item item : order.getItems()) {
                 Order newOrder = order.toBuilder()
                         .items(Collections.singletonList(item))
+                        .originalId(order.getId())
                         .build();
                 result.add(newOrder);
             }
@@ -62,6 +63,7 @@ public class YandexMarketOrderSplitter {
                     Order newOrder = order.toBuilder()
                             .id(boxes.get(currentBoxIndex).getFulfilmentId())
                             .items(Collections.singletonList(newItem))
+                            .originalId(order.getId())
                             .build();
                     result.add(newOrder);
                     currentBoxIndex++;
@@ -70,6 +72,7 @@ public class YandexMarketOrderSplitter {
                     Order newOrder = order.toBuilder()
                             .id(boxes.get(currentBoxIndex).getFulfilmentId())
                             .items(Collections.singletonList(item))
+                            .originalId(order.getId())
                             .build();
                     result.add(newOrder);
                     currentBoxIndex++;
@@ -92,6 +95,7 @@ public class YandexMarketOrderSplitter {
 
     private List<Order> splitSameItemsByBoxesIfNecessary(Order order, List<Delivery.Box> boxes) {
         if (boxes.size() == 1) {
+            order.setOriginalId(order.getId());
             return List.of(order);
         }
         try {
@@ -109,6 +113,7 @@ public class YandexMarketOrderSplitter {
                 Order newOrder = order.toBuilder()
                         .id(boxes.get(i).getFulfilmentId())
                         .items(Collections.singletonList(updatedItem))
+                        .originalId(order.getId())
                         .build();
                 result.add(newOrder);
             }

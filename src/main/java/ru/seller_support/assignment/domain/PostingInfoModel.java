@@ -23,4 +23,5 @@ public class PostingInfoModel {
     private LocalDateTime inProcessAt;
     private OrderStatus orderStatus;
     private ProductModel product;
+    private String originalOrderNumber;
 }

@@ -29,6 +29,7 @@ public interface YandexMarketAdapterMapper {
     @Mapping(target = "product", expression = "java(getProduct(order, shop))")
     @Mapping(target = "inProcessAt", source = "order.creationDate", qualifiedByName = "inProcessAt")
     @Mapping(target = "postingNumber", source = "order.id")
+    @Mapping(target = "originalOrderNumber", source = "order.originalId")
     PostingInfoModel toPostingInfoModel(Order order,
                                         ShopEntity shop);
 
@@ -39,6 +40,7 @@ public interface YandexMarketAdapterMapper {
     @Mapping(target = "product", expression = "java(getWrongProduct(order, shop))")
     @Mapping(target = "inProcessAt", source = "order.creationDate", qualifiedByName = "inProcessAt")
     @Mapping(target = "postingNumber", source = "order.id")
+    @Mapping(target = "originalOrderNumber", source = "order.id")
     PostingInfoModel toWrongPostingInfoModel(Order order,
                                              ShopEntity shop);
 

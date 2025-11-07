@@ -52,8 +52,7 @@ public class WildberriesAdapter extends MarketplaceAdapter {
 
         GetOrdersBySupplyIdResponse response = client.getOrdersBySupplyId(encryptService.decrypt(shop.getApiKey()), supplyId);
         log.info("Успешно получены отправления для {} в количестве {}", shop.getName(), response.getOrders().size());
-
-        return response.getOrders()
+        var orders = response.getOrders()
                 .stream()
                 .map(order -> {
                     try {
@@ -64,16 +63,19 @@ public class WildberriesAdapter extends MarketplaceAdapter {
                     }
                 })
                 .toList();
+
+        //так как потом на основании номера заказа генерируется внутренний qr код, и по нему производится поиск этикетки в конечном pdf
+        updateOrderIdByStickerId(orders, shop);
+        return orders;
     }
 
     @Override
     public List<byte[]> getPackagesByPostings(ShopEntity shop, List<PostingInfoModel> postings) {
         List<byte[]> packages = new ArrayList<>();
-        Map<String, String> orderIdStickerIdMapping = new HashMap<>();
         Base64.Decoder decoder = Base64.getDecoder();
 
         List<String> orderIds = postings.stream()
-                .map(PostingInfoModel::getPostingNumber)
+                .map(PostingInfoModel::getOriginalOrderNumber)
                 .toList();
 
         log.info("Попытка получить этикетки по заказам WB: {}", orderIds);
@@ -90,13 +92,11 @@ public class WildberriesAdapter extends MarketplaceAdapter {
                     request);
 
             partResponse.getStickers().forEach(sticker -> {
-                orderIdStickerIdMapping.put(sticker.getOrderId(), sticker.getPartA().concat(sticker.getPartB()));
                 byte[] decodedBytes = decoder.decode(sticker.getFile());
                 byte[] pdfBytes = FileUtils.convertSVGtoPDF(decodedBytes);
                 packages.add(pdfBytes);
             });
         }
-        changeOrderIdToStickerId(postings, orderIdStickerIdMapping);
         log.info("Количество этикеток для магазина {} = {}", shop.getName(), orderIds.size());
 
         return packages;
@@ -105,6 +105,34 @@ public class WildberriesAdapter extends MarketplaceAdapter {
     @Override
     public void collectPostingsAwaitingPackaging(ShopEntity shop, List<PostingInfoModel> postings) {
         throw new UnsupportedOperationException();
+    }
+
+    private void updateOrderIdByStickerId(List<PostingInfoModel> postings, ShopEntity shop) {
+        Map<String, String> orderIdStickerIdMapping = new HashMap<>();
+
+        List<String> orderIds = postings.stream()
+                .map(PostingInfoModel::getPostingNumber)
+                .toList();
+
+        for (int i = 0; i < orderIds.size(); i += MAX_ID_ORDERS_IN_REQUEST) {
+            List<String> batch = orderIds.subList(i, Math.min(i + MAX_ID_ORDERS_IN_REQUEST, orderIds.size()));
+
+            GetStickersRequest request = buildGetStickersRequest(batch);
+
+            GetStickersResponse partResponse = client.getStickers(encryptService.decrypt(shop.getApiKey()),
+                    WildberriesConstants.StickerTypes.SVG,
+                    WildberriesConstants.StickersSize.MIN_WIDTH,
+                    WildberriesConstants.StickersSize.MIN_HEIGHT,
+                    request);
+
+            partResponse.getStickers().forEach(sticker -> {
+                orderIdStickerIdMapping.put(sticker.getOrderId(), sticker.getPartA().concat(sticker.getPartB()));
+            });
+        }
+
+        changeOrderIdToStickerId(postings, orderIdStickerIdMapping);
+        log.info("Успешно изменено номеров заказа на номера этикеток для магазина {} = {}",
+                shop.getName(), orderIdStickerIdMapping.values().size());
     }
 
     private GetStickersRequest buildGetStickersRequest(List<String> orderIds) {
@@ -116,6 +144,7 @@ public class WildberriesAdapter extends MarketplaceAdapter {
     private void changeOrderIdToStickerId(List<PostingInfoModel> postings,
                                           Map<String, String> orderIdStickerIdMapping) {
         postings.forEach(posting -> {
+            posting.setOriginalOrderNumber(posting.getPostingNumber());
             String stickerId = orderIdStickerIdMapping.get(posting.getPostingNumber());
             posting.setPostingNumber(stickerId);
         });
