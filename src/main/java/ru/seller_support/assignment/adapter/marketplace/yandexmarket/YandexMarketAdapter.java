@@ -87,7 +87,14 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
     @Override
     public List<byte[]> getPackagesByPostings(ShopEntity shop, List<PostingInfoModel> postings) {
         List<byte[]> packages = new ArrayList<>();
+        List<String> originalOrderIds = postings.stream()
+                .map(PostingInfoModel::getOriginalOrderNumber)
+                .toList();
+
+        var orderNumbersWithCorrectStatus = getOrderNumbersWithCorrectStatus(originalOrderIds, shop);
+
         List<String> orderIds = postings.stream()
+                .filter(order -> orderNumbersWithCorrectStatus.contains(order.getOriginalOrderNumber()))
                 .map(PostingInfoModel::getPostingNumber)
                 .distinct()
                 .toList();
@@ -152,5 +159,18 @@ public class YandexMarketAdapter extends MarketplaceAdapter {
     private String removeDashAndAfter(String input) {
         int dashIndex = input.indexOf('-');
         return dashIndex == -1 ? input : input.substring(0, dashIndex);
+    }
+
+    private List<String> getOrderNumbersWithCorrectStatus(List<String> orderNumbers, ShopEntity shop) {
+        List<Long> ids = orderNumbers.stream()
+                .map(Long::valueOf)
+                .distinct()
+                .toList();
+        GetOrdersByIdsResponse response = client.getOrdersByIds(encryptService.decrypt(shop.getApiKey()), shop.getClientId(), ids);
+        return response.getOrders().stream()
+                .filter(order -> order.getStatus().equalsIgnoreCase("PROCESSING"))
+                .map(Order::getId)
+                .map(String::valueOf)
+                .toList();
     }
 }

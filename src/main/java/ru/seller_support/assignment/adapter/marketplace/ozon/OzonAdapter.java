@@ -22,11 +22,15 @@ import ru.seller_support.assignment.domain.enums.Marketplace;
 import ru.seller_support.assignment.exception.ArticleMappingException;
 import ru.seller_support.assignment.service.TextEncryptService;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static ru.seller_support.assignment.adapter.marketplace.ozon.common.OzonСonstants.OzonStatus.AWAITING_DELIVER;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +53,7 @@ public class OzonAdapter extends MarketplaceAdapter {
     public List<PostingInfoModel> getNewPosting(ShopEntity shop, GetPostingsModel request) {
         List<GetUnfulfilledListResponse> responses = new ArrayList<>();
         if (Objects.isNull(request.getOzonStatus())) {
-            GetUnfulfilledListRequest requestAwaitingDeliver = buildGetPostingRequest(request, OzonСonstants.OzonStatus.AWAITING_DELIVER);
+            GetUnfulfilledListRequest requestAwaitingDeliver = buildGetPostingRequest(request, AWAITING_DELIVER);
             GetUnfulfilledListRequest requestAcceptanceInProgress = buildGetPostingRequest(request, OzonСonstants.OzonStatus.ACCEPTANCE_IN_PROGRESS);
             GetUnfulfilledListResponse responseAwaitingDeliver = ozonClient.getUnfulfilledOrders(
                     encryptService.decrypt(shop.getApiKey()), shop.getClientId(), requestAwaitingDeliver);
@@ -89,11 +93,13 @@ public class OzonAdapter extends MarketplaceAdapter {
 
     @Override
     public List<byte[]> getPackagesByPostings(ShopEntity shop, List<PostingInfoModel> postings) {
+        var correctNumbers = getOrderNumbersWithCorrectStatus(shop);
 
         List<byte[]> packages = new ArrayList<>();
 
         List<String> postingNumbers = postings.stream()
                 .map(PostingInfoModel::getPostingNumber)
+                .filter(correctNumbers::contains)
                 .toList();
 
         log.info("Попытка получить этикетки по заказам OZON: {}", postingNumbers);
@@ -174,5 +180,31 @@ public class OzonAdapter extends MarketplaceAdapter {
                 .quantity(1)
                 .build();
         return List.of(collectionProduct);
+    }
+
+    private List<String> getOrderNumbersWithCorrectStatus(ShopEntity shop) {
+        var request = GetPostingsModel.builder()
+                .from(Instant.now().minus(5, ChronoUnit.DAYS))
+                .to(Instant.now())
+                .build();
+        List<GetUnfulfilledListResponse> responses = new ArrayList<>();
+
+        GetUnfulfilledListRequest requestAwaitingDeliver = buildGetPostingRequest(request, AWAITING_DELIVER);
+        GetUnfulfilledListRequest requestAcceptanceInProgress = buildGetPostingRequest(request, OzonСonstants.OzonStatus.ACCEPTANCE_IN_PROGRESS);
+
+        GetUnfulfilledListResponse responseAwaitingDeliver = ozonClient.getUnfulfilledOrders(
+                encryptService.decrypt(shop.getApiKey()), shop.getClientId(), requestAwaitingDeliver);
+        responses.add(responseAwaitingDeliver);
+
+        GetUnfulfilledListResponse responseAcceptanceInProgress = ozonClient.getUnfulfilledOrders(
+                encryptService.decrypt(shop.getApiKey()), shop.getClientId(), requestAcceptanceInProgress);
+        responses.add(responseAcceptanceInProgress);
+
+        return responses.stream()
+                .map(GetUnfulfilledListResponse::getResult)
+                .map(GetUnfulfilledListResponse.Result::getPostings)
+                .flatMap(List::stream)
+                .map(Posting::getPostingNumber)
+                .toList();
     }
 }

@@ -34,11 +34,16 @@ public class OrderStatusHandler {
             return OrderUpdateStatusResult.failedUpdate(order);
         }
 
+        var saved = updateStatusWithHistory(order, newStatus, employees);
+        return OrderUpdateStatusResult.successUpdate(saved);
+    }
+
+    private OrderEntity updateStatusWithHistory(OrderEntity order, OrderStatus newStatus, List<EmployeeDto> employees) {
         order.setStatus(newStatus);
 
         employees.forEach(employee ->
-            saveOrderHistory(order, employee.getUsername(), Workplace.fromValue(employee.getWorkplace()
-        )));
+                saveOrderHistory(order, employee.getUsername(), Workplace.fromValue(employee.getWorkplace()
+                )));
 
         if (newStatus == OrderStatus.BRAK) {
             order.setStatus(OrderStatus.CREATED);
@@ -46,8 +51,7 @@ public class OrderStatusHandler {
         }
 
 
-        var saved = orderRepository.save(order);
-        return OrderUpdateStatusResult.successUpdate(saved);
+        return orderRepository.save(order);
     }
 
     private void saveOrderHistory(OrderEntity order, String author, Workplace workplace) {

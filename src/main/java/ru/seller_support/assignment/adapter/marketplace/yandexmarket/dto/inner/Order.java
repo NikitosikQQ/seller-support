@@ -19,6 +19,8 @@ public class Order {
     private String creationDate;
     private List<Item> items;
     private Delivery delivery;
+    private String status;
+
 
     @JsonIgnore
     private boolean wrongBox;
