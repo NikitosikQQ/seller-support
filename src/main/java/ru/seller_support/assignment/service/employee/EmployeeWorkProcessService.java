@@ -1,4 +1,4 @@
-package ru.seller_support.assignment.service;
+package ru.seller_support.assignment.service.employee;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,8 +10,7 @@ import ru.seller_support.assignment.controller.dto.request.employee.ProcessEmplo
 import ru.seller_support.assignment.domain.enums.CapacityOperationType;
 import ru.seller_support.assignment.domain.enums.OrderStatus;
 import ru.seller_support.assignment.domain.enums.Workplace;
-import ru.seller_support.assignment.service.employee.EmployeeCapacityService;
-import ru.seller_support.assignment.service.employee.EmployeeValidationService;
+import ru.seller_support.assignment.service.order.OrderAlertService;
 import ru.seller_support.assignment.service.order.OrderService;
 import ru.seller_support.assignment.service.order.OrderStatusHandler;
 

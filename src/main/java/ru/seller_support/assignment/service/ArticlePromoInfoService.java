@@ -106,6 +106,11 @@ public class ArticlePromoInfoService {
         return repository.findAllByNameIn(articlesName);
     }
 
+    @Transactional
+    public List<ArticlePromoInfoEntity> findAllByMaterialIds(Collection<UUID> materialIds) {
+        return repository.findAllByMaterialIdIn(materialIds);
+    }
+
     private List<ArticlePromoInfoEntity> fillChpuMaterialIfExists(List<ArticlePromoInfoEntity> articlePromoInfos) {
         Map<UUID, List<ArticlePromoInfoEntity>> articlesWithChpuMaterial = articlePromoInfos.stream()
                 .filter(article -> Objects.nonNull(article.getChpuMaterialId()))

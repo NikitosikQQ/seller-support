@@ -1,4 +1,4 @@
-package ru.seller_support.assignment.service;
+package ru.seller_support.assignment.service.order;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

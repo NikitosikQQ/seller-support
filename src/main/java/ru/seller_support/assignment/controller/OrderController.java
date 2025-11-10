@@ -76,6 +76,7 @@ public class OrderController {
         log.info("Старт процесса скачивания этикеток");
         var pdfBytes = orderPackageService.downloadOrderPackages(onlyPackagingMaterials);
         if (pdfBytes == null) {
+            log.info("Не найдены заказы для упаковки");
             return ResponseEntity.notFound().build();
         }
         log.info("Успешно завершен процесс скачивания этикеток");

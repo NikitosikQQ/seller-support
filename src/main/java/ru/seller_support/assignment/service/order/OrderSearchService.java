@@ -10,6 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.seller_support.assignment.adapter.postgres.entity.ArticlePromoInfoEntity;
 import ru.seller_support.assignment.adapter.postgres.entity.ColorEntity;
 import ru.seller_support.assignment.adapter.postgres.entity.MaterialEntity;
 import ru.seller_support.assignment.adapter.postgres.entity.order.OrderChangesHistoryEntity;
@@ -19,14 +20,12 @@ import ru.seller_support.assignment.adapter.postgres.repository.order.OrderRepos
 import ru.seller_support.assignment.controller.dto.request.order.SearchChpuOrderRequest;
 import ru.seller_support.assignment.controller.dto.request.order.SearchOrderRequest;
 import ru.seller_support.assignment.controller.dto.response.ChpuOrderDto;
+import ru.seller_support.assignment.service.ArticlePromoInfoService;
 import ru.seller_support.assignment.service.ColorService;
 import ru.seller_support.assignment.service.MaterialService;
 
 import java.math.BigDecimal;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.jpa.domain.Specification.where;
@@ -50,6 +49,7 @@ public class OrderSearchService {
     private final OrderRepository orderRepository;
     private final OrderChangesHistoryRepository orderHistoryRepository;
     private final MaterialService materialService;
+    private final ArticlePromoInfoService articleService;
     private final ColorService colorService;
 
     @Value("${app.orders.dimensionalTolerance}")
@@ -91,32 +91,40 @@ public class OrderSearchService {
     }
 
     public List<ChpuOrderDto> searchChpu(SearchChpuOrderRequest query) {
-        List<String> chpuMaterialNames = materialService.findAllForChpu().stream()
-                .map(MaterialEntity::getName)
-                .toList();
+        Map<UUID, String> chpuMaterialNames = materialService.findAllForChpu().stream()
+                .collect(Collectors.toMap(MaterialEntity::getId, MaterialEntity::getName));
 
-        Specification<OrderEntity> spec = where(statusIn(query.getStatuses()))
-                .and(thicknessEqual(query.getThickness()))
-                .and(materialNameIn(chpuMaterialNames))
-                .and(materialNameNotIn(query.getExcludeMaterialNames()));
+        List<ArticlePromoInfoEntity> articles = articleService.findAllByMaterialIds(chpuMaterialNames.keySet());
+
+        Map<String, String> articlePromoNameChpuMaterialNameMap = new HashMap<>();
+        for (ArticlePromoInfoEntity article : articles) {
+            var materialName = article.getChpuMaterialId() == null
+                    ? article.getMaterial().getName()
+                    : chpuMaterialNames.get(article.getChpuMaterialId());
+            articlePromoNameChpuMaterialNameMap.put(article.getName(), materialName);
+        }
+
+        Specification<OrderEntity> spec = where(statusIn(query.getStatuses())).and(materialNameIn(chpuMaterialNames.values()));
 
         List<OrderEntity> found = orderRepository.findAll(spec);
 
-        // Группируем по материалу, толщине и номеру цвета
+        // Группируем по материалу ЧПУ, толщине и номеру цвета
         Map<String, List<OrderEntity>> grouped = found.stream()
                 .collect(Collectors.groupingBy(order ->
-                        order.getMaterialName() + "_" + order.getThickness() + "_" + order.getColorNumber()
+                        articlePromoNameChpuMaterialNameMap.getOrDefault(order.getPromoName(), order.getMaterialName()) + "_" + order.getThickness() + "_" + order.getColorNumber()
                 ));
         Map<Integer, String> colors = colorService.findAll().stream()
                 .collect(Collectors.toMap(ColorEntity::getNumber, ColorEntity::getName));
 
         return grouped.values().stream()
-                .map(orders -> mapToChpuDto(orders, colors))
+                .map(orders -> mapToChpuDto(orders, colors, articlePromoNameChpuMaterialNameMap))
                 .sorted(Comparator.comparing(ChpuOrderDto::getAreaSummary).reversed())
                 .toList();
     }
 
-    private ChpuOrderDto mapToChpuDto(List<OrderEntity> orders, Map<Integer, String> colors) {
+    private ChpuOrderDto mapToChpuDto(List<OrderEntity> orders,
+                                      Map<Integer, String> colors,
+                                      Map<String, String> articlePromoNameChpuMaterialNameMap) {
         BigDecimal areaSummary = orders.stream()
                 .map(OrderEntity::getAreaInMeters)
                 .filter(Objects::nonNull)
@@ -130,9 +138,10 @@ public class OrderSearchService {
 
         OrderEntity first = orders.getFirst();
         String color = colors.getOrDefault(first.getColorNumber(), "Бесцветный");
+        String materialName = articlePromoNameChpuMaterialNameMap.get(first.getPromoName());
 
         String shortArticle = String.format("%s %d %s",
-                first.getMaterialName(),
+                materialName,
                 first.getThickness(),
                 color
         );

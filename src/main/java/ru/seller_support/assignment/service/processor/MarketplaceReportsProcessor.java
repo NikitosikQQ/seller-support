@@ -14,6 +14,7 @@ import ru.seller_support.assignment.controller.dto.request.report.GeneratePostin
 import ru.seller_support.assignment.domain.GetPostingsModel;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
+import ru.seller_support.assignment.domain.enums.OrderStatus;
 import ru.seller_support.assignment.exception.PostingGenerationException;
 import ru.seller_support.assignment.service.ShopService;
 import ru.seller_support.assignment.service.comment.CommentService;
@@ -122,6 +123,7 @@ public class MarketplaceReportsProcessor {
     public FileDto generateChpuTemplateReport(List<String> orderNumbers) {
         var orders = orderService.findByNumbersIn(orderNumbers);
         var models = orders.stream()
+                .filter(it -> it.getStatus() == OrderStatus.CREATED)
                 .map(it -> orderMapper.toPostingModel(it, false))
                 .toList();
         var bytesMap = chpuTemplateExcelGenerator.createChpuTemplates(models);
