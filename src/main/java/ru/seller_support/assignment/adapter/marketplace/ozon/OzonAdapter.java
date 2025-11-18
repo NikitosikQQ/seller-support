@@ -186,7 +186,7 @@ public class OzonAdapter extends MarketplaceAdapter {
 
     private List<String> getOrderNumbersWithCorrectStatus(ShopEntity shop) {
         var request = GetPostingsModel.builder()
-                .from(Instant.now().minus(5, ChronoUnit.DAYS))
+                .from(Instant.now().minus(31, ChronoUnit.DAYS))
                 .to(Instant.now())
                 .build();
         List<GetUnfulfilledListResponse> responses = new ArrayList<>();
