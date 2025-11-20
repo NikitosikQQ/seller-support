@@ -34,7 +34,8 @@ import java.util.concurrent.Executors;
 @Slf4j
 public class MarketplaceImportOrdersProcessor {
 
-    private static final Duration ORDER_DELAY_TO_GET = Duration.parse("PT24H");
+    private static final Duration ORDER_DELAY_PERIOD_FROM = Duration.parse("PT24H");
+    private static final Duration ORDER_DELAY_PERIOD_TO = Duration.parse("PT48H");
 
     private final List<MarketplaceAdapter> adapters;
 
@@ -124,6 +125,7 @@ public class MarketplaceImportOrdersProcessor {
 
     private GetPostingsModel prepareGetPostingModel(ImportOrdersRequest request) {
         Instant now = Instant.now();
+        Instant toOzonDate = now.plus(ORDER_DELAY_PERIOD_TO);
 
         Instant fromRequested = Optional.ofNullable(request)
                 .map(ImportOrdersRequest::getFrom)
@@ -133,13 +135,13 @@ public class MarketplaceImportOrdersProcessor {
                 .map(ImportOrdersRequest::getWbSupplyDetails)
                 .orElse(null);
 
-        Instant fromOzonDate = Objects.isNull(fromRequested) ? now.minus(ORDER_DELAY_TO_GET) : fromRequested;
+        Instant fromOzonDate = Objects.isNull(fromRequested) ? now.minus(ORDER_DELAY_PERIOD_FROM) : fromRequested;
 
-        log.info("Дата начала периода для импорта заказов : {}", fromOzonDate);
+        log.info("Период для импорта заказов: {} - {}", fromOzonDate, toOzonDate);
 
         return GetPostingsModel.builder()
                 .from(fromOzonDate)
-                .to(now)
+                .to(toOzonDate)
                 .yandexTo(now)
                 .wbSupplies(wbSupplyDetails)
                 .build();

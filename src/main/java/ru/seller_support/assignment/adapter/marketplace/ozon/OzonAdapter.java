@@ -55,6 +55,7 @@ public class OzonAdapter extends MarketplaceAdapter {
         if (Objects.isNull(request.getOzonStatus())) {
             GetUnfulfilledListRequest requestAwaitingDeliver = buildGetPostingRequest(request, AWAITING_DELIVER);
             GetUnfulfilledListRequest requestAcceptanceInProgress = buildGetPostingRequest(request, OzonСonstants.OzonStatus.ACCEPTANCE_IN_PROGRESS);
+
             GetUnfulfilledListResponse responseAwaitingDeliver = ozonClient.getUnfulfilledOrders(
                     encryptService.decrypt(shop.getApiKey()), shop.getClientId(), requestAwaitingDeliver);
             responses.add(responseAwaitingDeliver);

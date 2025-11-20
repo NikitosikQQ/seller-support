@@ -10,19 +10,21 @@ import ru.seller_support.assignment.controller.dto.response.EmployeeCapacityDtoR
 import ru.seller_support.assignment.domain.enums.CapacityOperationType;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface EmployeeProcessedCapacityMapper {
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "createdAt", source = "createdAt")
     @Mapping(target = "amount", source = "amount")
     @Mapping(target = "operationType", source = "operationType")
     @Mapping(target = "capacity", source = "currentCapacity")
     EmployeeActivityHistoryEntity toEmployeeActivityHistory(EmployeeProcessedCapacityEntity employeeProcessedCapacityEntity,
                                                             CapacityOperationType operationType,
                                                             BigDecimal currentCapacity,
-                                                            BigDecimal amount);
+                                                            BigDecimal amount,
+                                                            LocalDateTime createdAt);
 
 
     EmployeeCapacityDto toDto(EmployeeProcessedCapacityEntity entity);

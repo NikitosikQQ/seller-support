@@ -175,7 +175,8 @@ public class EmployeeCapacityService {
                                              CapacityOperationType operationType,
                                              BigDecimal currentCapacity,
                                              BigDecimal amount) {
-        var activityHistory = mapper.toEmployeeActivityHistory(employeeProcessedCapacity, operationType, currentCapacity, amount);
+        var now = LocalDateTime.now(clock);
+        var activityHistory = mapper.toEmployeeActivityHistory(employeeProcessedCapacity, operationType, currentCapacity, amount, now);
         employeeActivityHistoryRepository.save(activityHistory);
     }
 

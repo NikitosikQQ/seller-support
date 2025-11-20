@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.hibernate.annotations.CreationTimestamp;
 import ru.seller_support.assignment.domain.enums.CapacityOperationType;
 import ru.seller_support.assignment.domain.enums.Workplace;
 
@@ -46,6 +45,5 @@ public class EmployeeActivityHistoryEntity {
     private LocalDate processedAt;
 
     @Column(name = "created_at")
-    @CreationTimestamp
     private LocalDateTime createdAt;
 }
