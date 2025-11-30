@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import ru.seller_support.assignment.service.order.OrderStatusRefresher;
 import ru.seller_support.assignment.service.processor.CleanUpProcessor;
 import ru.seller_support.assignment.service.processor.MarketplaceCollectPostingsProcessor;
 import ru.seller_support.assignment.service.processor.MarketplaceImportOrdersProcessor;
@@ -15,6 +16,7 @@ public class ProcessorScheduler {
 
     private final MarketplaceCollectPostingsProcessor collectPostingsProcessor;
     private final MarketplaceImportOrdersProcessor getPostingsProcessor;
+    private final OrderStatusRefresher orderStatusRefresher;
     private final CleanUpProcessor cleanUpProcessor;
 
     @Scheduled(cron = "0 0 * * * *", zone = "Europe/Moscow")
@@ -38,5 +40,12 @@ public class ProcessorScheduler {
         log.info("Старт очистки старых выполненных работ");
         cleanUpProcessor.cleanEmployeeCapacity();
         log.info("Очиста старых выполненных работ произошла успешно");
+    }
+
+   // @Scheduled(cron = "0 0 20 * * *", zone = "Europe/Moscow")
+    @Scheduled(cron = "0 10 * * * *", zone = "Europe/Moscow")
+    public void processRefreshOrderStatuses() {
+        orderStatusRefresher.actualizeWildberriesOrderStatus();
+        orderStatusRefresher.refreshOrdersStatus();
     }
 }

@@ -18,10 +18,7 @@ import ru.seller_support.assignment.service.mapper.EmployeeProcessedCapacityMapp
 import ru.seller_support.assignment.service.order.OrderService;
 
 import java.math.BigDecimal;
-import java.time.Clock;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -51,7 +48,12 @@ public class EmployeeCapacityService {
                                                  String username,
                                                  Workplace workplace,
                                                  CapacityOperationType capacityOperationType) {
-        var processedAt = LocalDate.now(clock);
+        //мониторинг работ за день учитывается с 21 до 21
+        var now = LocalDateTime.now(clock);
+        var date = now.toLocalDate();
+        var cutoff = LocalTime.of(21, 0);
+        LocalDate processedAt = now.toLocalTime().isBefore(cutoff) ? date : date.plusDays(1);
+
         if (capacityOperationType == CapacityOperationType.EARNING) {
             earnAmountToEmployee(orderEntity, username, workplace, processedAt);
         } else if (capacityOperationType == CapacityOperationType.PENALTY) {
@@ -76,11 +78,16 @@ public class EmployeeCapacityService {
                 log.warn("Работники должны обязательно указать рабочее место для мониторинга выполненных работ");
                 return Collections.emptyList();
             }
-            Set<Workplace> workplaces = Workplace.getWorkplacesGroupByWorkplace(Workplace.fromValue(workplace));
-            var timeLimit = LocalDateTime.now(clock).minus(CAPACITY_UPDATE_DELAY);
-            return employeeActivityHistoryRepository.getCapacitiesByWorkplacesWithDelay(today, workplaces, timeLimit);
-        }
 
+            Set<Workplace> workplaces = Workplace.getWorkplacesGroupByWorkplace(Workplace.fromValue(workplace));
+            //если попросят вернуть задержку отображения для работников
+//            var timeLimit = LocalDateTime.now(clock).minus(CAPACITY_UPDATE_DELAY);
+//            return employeeActivityHistoryRepository.getCapacitiesByWorkplacesWithDelay(today, workplaces, timeLimit);
+            var capacities = employeeCapacityRepository.getActualCapacitiesByWorkplace(today, workplaces);
+            return capacities.stream()
+                    .map(mapper::toDto)
+                    .toList();
+        }
     }
 
     @Transactional

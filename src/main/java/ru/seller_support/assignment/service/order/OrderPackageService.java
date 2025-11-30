@@ -1,5 +1,6 @@
 package ru.seller_support.assignment.service.order;
 
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -62,6 +63,31 @@ public class OrderPackageService {
         }
         var executor = Executors.newFixedThreadPool(shops.size());
         var pdfPackages = getPackagesOfPostingsAsync(shops, models, executor);
+        if (CollectionUtils.isEmpty(pdfPackages)) {
+            return null;
+        }
+
+        return FileUtils.mergePdfFiles(pdfPackages);
+    }
+
+    public byte[] downloadPackageByOrderNumber(String orderNumber) {
+        var order = orderService.findByNumber(orderNumber);
+        if (order == null) {
+            return null;
+        }
+        if (OrderStatus.FINAL_STATUSES.contains(order.getStatus())) {
+            throw new ValidationException(String.format("Статус заказа %s - %s, по нему нельзя скачать этикетку",
+                    order.getNumber(), order.getStatus()));
+        }
+
+        var model = orderMapper.toPostingModel(order, true);
+
+        var shops = shopService.findAllByNames(List.of(model.getShopName()));
+        if (CollectionUtils.isEmpty(shops)) {
+            return null;
+        }
+        var executor = Executors.newFixedThreadPool(shops.size());
+        var pdfPackages = getPackagesOfPostingsAsync(shops, List.of(model), executor);
         if (CollectionUtils.isEmpty(pdfPackages)) {
             return null;
         }

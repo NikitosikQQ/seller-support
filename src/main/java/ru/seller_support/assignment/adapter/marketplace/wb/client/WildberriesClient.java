@@ -5,17 +5,33 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.bind.annotation.*;
+import ru.seller_support.assignment.adapter.marketplace.wb.dto.request.GetOrderStatusRequest;
 import ru.seller_support.assignment.adapter.marketplace.wb.dto.request.GetStickersRequest;
-import ru.seller_support.assignment.adapter.marketplace.wb.dto.response.GetOrdersBySupplyIdResponse;
+import ru.seller_support.assignment.adapter.marketplace.wb.dto.response.GetOrdersStatusResponse;
 import ru.seller_support.assignment.adapter.marketplace.wb.dto.response.GetStickersResponse;
+import ru.seller_support.assignment.adapter.marketplace.wb.dto.response.SearchOrdersResponse;
+import ru.seller_support.assignment.adapter.marketplace.wb.dto.response.SupplyInfoResponse;
 
 @FeignClient(name = "wbClient", url = "${app.integrations.marketplaces.wb.rootUrl}")
 public interface WildberriesClient {
 
     @Retryable(value = {FeignException.class}, maxAttempts = 3, backoff = @Backoff(delay = 500))
-    @GetMapping("/api/v3/supplies/{supplyId}/orders")
-    GetOrdersBySupplyIdResponse getOrdersBySupplyId(@RequestHeader("Authorization") String apiKey,
-                                                    @PathVariable("supplyId") String supplyId);
+    @GetMapping("/api/v3/supplies/{supplyId}")
+    SupplyInfoResponse getSupplyById(@RequestHeader("Authorization") String apiKey,
+                                     @PathVariable("supplyId") String supplyId);
+
+    @Retryable(value = {FeignException.class}, maxAttempts = 3, backoff = @Backoff(delay = 500))
+    @PostMapping("/api/v3/orders/status")
+    GetOrdersStatusResponse getOrdersStatus(@RequestHeader("Authorization") String apiKey,
+                                            @RequestBody GetOrderStatusRequest request);
+
+    @Retryable(value = {FeignException.class}, maxAttempts = 3, backoff = @Backoff(delay = 500))
+    @GetMapping("/api/v3/orders")
+    SearchOrdersResponse getOrders(@RequestHeader("Authorization") String apiKey,
+                                   @RequestParam("limit") Long limit,
+                                   @RequestParam("next") Long next,
+                                   @RequestParam("dateFrom") Long dateFrom,
+                                   @RequestParam("dateTo") Long dateTo);
 
     @Retryable(value = {FeignException.class}, maxAttempts = 3, backoff = @Backoff(delay = 500))
     @PostMapping("/api/v3/orders/stickers")

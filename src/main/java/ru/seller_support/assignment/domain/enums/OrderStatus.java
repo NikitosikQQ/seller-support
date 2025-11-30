@@ -10,9 +10,9 @@ import java.util.Set;
 @AllArgsConstructor
 public enum OrderStatus {
 
-    CREATED, PILA, CHPU, KROMKA, UPAKOVKA, BRAK;
+    CREATED, PILA, CHPU, KROMKA, UPAKOVKA, DONE, BRAK, CANCELLED;
 
-    public static final Set<OrderStatus> FINAL_STATUSES = Set.of(UPAKOVKA);
+    public static final Set<OrderStatus> FINAL_STATUSES = Set.of(CANCELLED, DONE);
 
     //todo - убрать CREATED
     public static final Set<OrderStatus> STATUSES_FOR_DOWNLOAD_PACKAGES = Set.of(CREATED, PILA, CHPU, KROMKA);
@@ -40,11 +40,12 @@ public enum OrderStatus {
     public boolean canUpdateToNewStatus(OrderStatus newStatus, Workplace workplace) {
         if (newStatus != BRAK) {
             return switch (this) {
-                case CREATED -> newStatus == PILA || newStatus == CHPU || newStatus == UPAKOVKA;  //todo - заменить потом на (newStatus == UPAKOVKA && workplace == Workplace.UPAKOVSHIK_MEBEL);
+                case CREATED ->
+                        newStatus == PILA || newStatus == CHPU || newStatus == UPAKOVKA;  //todo - заменить потом на (newStatus == UPAKOVKA && workplace == Workplace.UPAKOVSHIK_MEBEL);
                 case PILA, CHPU -> newStatus == KROMKA || newStatus == UPAKOVKA;
                 case KROMKA -> newStatus == UPAKOVKA && workplace == Workplace.UPAKOVSHIK;
                 case BRAK -> newStatus == CREATED;
-                case UPAKOVKA -> false;
+                case UPAKOVKA, CANCELLED, DONE -> false;
             };
         }
         var expectedStatuses = BRAK_WORKPLACE_ORDER_STATUS_MAP.get(workplace);

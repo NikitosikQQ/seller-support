@@ -1,5 +1,6 @@
 package ru.seller_support.assignment.service.order;
 
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,11 +25,17 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderChangesHistoryRepository changesHistoryRepository;
     private final OrderMapper orderMapper;
+    private final OrderStatusHandler statusHandler;
     private final Clock clock;
 
     @Transactional(readOnly = true)
     public OrderEntity findByNumber(String number) {
         return orderRepository.findByNumber(number);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderEntity> findAllByExternalOrderNumber(String number) {
+        return orderRepository.findAllByExternalOrderNumber(number);
     }
 
     @Transactional(readOnly = true)
@@ -78,7 +85,20 @@ public class OrderService {
         return orderRepository.cleanUp(maxCreatedAt, OrderStatus.FINAL_STATUSES);
     }
 
+    @Transactional(readOnly = true)
     public List<OrderChangesHistoryEntity> getOrderChanges(OrderEntity orderEntity) {
         return changesHistoryRepository.findByOrderId(orderEntity.getId());
+    }
+
+    @Transactional
+    public void updateStatus(String orderNumber, OrderStatus newStatus, String author) {
+        var order = orderRepository.findByNumber(orderNumber);
+        if (order == null) {
+            throw new ValidationException(String.format("Не найден заказ с номером %s", orderNumber));
+        }
+        var result = statusHandler.updateStatusAndSave(order, newStatus, author);
+        if (!result.wasUpdate()) {
+            throw new ValidationException(String.format("Заказ находится в финальном статусе: %s", order.getStatus()));
+        }
     }
 }

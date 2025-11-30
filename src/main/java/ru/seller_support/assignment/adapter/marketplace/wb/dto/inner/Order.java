@@ -28,6 +28,11 @@ public class Order {
     @JsonProperty(required = true)
     Long convertedPrice;
 
+    //id поставки
+    @JsonProperty(required = true)
+    String supplyId;
+
+
     //дата и время принятия в обработку
     @JsonProperty(required = true)
     Instant createdAt;

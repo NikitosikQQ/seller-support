@@ -1,4 +1,4 @@
-package ru.seller_support.assignment.controller;
+package ru.seller_support.assignment.controller.api;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

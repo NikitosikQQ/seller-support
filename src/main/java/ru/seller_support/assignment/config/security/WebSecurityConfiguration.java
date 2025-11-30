@@ -37,7 +37,12 @@ public class WebSecurityConfiguration {
                 .anonymous(AbstractHttpConfigurer::disable)
                 .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/styles/**", "/scripts/**", "/auth", "/panel").permitAll()
+                        .requestMatchers("/styles/**",
+                                "/scripts/**",
+                                "/auth",
+                                "/panel",
+                                "/api/ozon/**",
+                                "/api/yandex-market/**").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/login")

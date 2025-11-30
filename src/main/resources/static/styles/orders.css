@@ -405,3 +405,57 @@
     transition: border-color 0.3s ease, background-color 0.3s ease;
     margin-bottom: 1rem;
 }
+
+.change-status-wrapper {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.change-status-btn {
+    padding: 8px 16px;
+    background: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    width: 100%;
+    display: block;
+}
+
+.status-editor {
+    background: #dcdcdc;
+    padding: 0 16px; /* изначально без вертикальных отступов */
+    border-radius: 10px;
+    margin-top: 15px;
+
+    max-height: 0;
+    overflow: hidden;
+
+    opacity: 0;
+
+    transition:
+            max-height 0.35s ease,
+            opacity 0.25s ease,
+            padding 0.25s ease;
+}
+
+.status-editor.open {
+    max-height: 200px; /* любое значение > реальной высоты блока */
+    opacity: 1;
+    padding: 16px;
+}
+
+.status-select {
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+.save-status-btn {
+    padding: 8px 14px;
+    background: #1976d2;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}

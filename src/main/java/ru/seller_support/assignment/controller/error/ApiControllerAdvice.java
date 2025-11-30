@@ -4,6 +4,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,10 +22,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-@ControllerAdvice
+@ControllerAdvice(basePackages = "ru.seller_support.assignment.controller.api")
 @RequiredArgsConstructor
 @Slf4j
-public class GlobalControllerAdvice {
+public class ApiControllerAdvice {
 
     private final ErrorResolver errorResolver;
 
@@ -34,6 +35,13 @@ public class GlobalControllerAdvice {
         log.warn("Ошибка авторизации: {}", ex.getMessage(), ex);
         ErrorResponse body = errorResolver.resolve(ex);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(ValidationException ex) {
+        log.warn("Валидация запроса не пройдена: {}", ex.getMessage(), ex);
+        ErrorResponse body = errorResolver.resolve(ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     @ExceptionHandler(DuplicateOrdersFoundException.class)

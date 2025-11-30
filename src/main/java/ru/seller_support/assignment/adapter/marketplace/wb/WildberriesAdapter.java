@@ -3,23 +3,32 @@ package ru.seller_support.assignment.adapter.marketplace.wb;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import ru.seller_support.assignment.adapter.marketplace.MarketplaceAdapter;
 import ru.seller_support.assignment.adapter.marketplace.wb.client.WildberriesClient;
 import ru.seller_support.assignment.adapter.marketplace.wb.common.WildberriesConstants;
+import ru.seller_support.assignment.adapter.marketplace.wb.dto.request.GetOrderStatusRequest;
 import ru.seller_support.assignment.adapter.marketplace.wb.dto.request.GetStickersRequest;
-import ru.seller_support.assignment.adapter.marketplace.wb.dto.response.GetOrdersBySupplyIdResponse;
+import ru.seller_support.assignment.adapter.marketplace.wb.dto.request.SearchOrdersRequest;
 import ru.seller_support.assignment.adapter.marketplace.wb.dto.response.GetStickersResponse;
+import ru.seller_support.assignment.adapter.marketplace.wb.dto.response.SupplyInfoResponse;
 import ru.seller_support.assignment.adapter.marketplace.wb.mapper.WildberriesAdapterMapper;
 import ru.seller_support.assignment.adapter.postgres.entity.ShopEntity;
+import ru.seller_support.assignment.adapter.postgres.entity.order.OrderEntity;
 import ru.seller_support.assignment.controller.dto.request.WbSupplyDetails;
 import ru.seller_support.assignment.domain.GetPostingsModel;
 import ru.seller_support.assignment.domain.PostingInfoModel;
 import ru.seller_support.assignment.domain.enums.Marketplace;
+import ru.seller_support.assignment.domain.enums.OrderStatus;
 import ru.seller_support.assignment.exception.ArticleMappingException;
 import ru.seller_support.assignment.service.TextEncryptService;
 import ru.seller_support.assignment.util.FileUtils;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +36,8 @@ import java.util.*;
 public class WildberriesAdapter extends MarketplaceAdapter {
 
     private static final int MAX_ID_ORDERS_IN_REQUEST = 100;
+    private static final long MAX_ORDER_LIMIT_IN_RESPONSE = 1000;
+    private static final long DEFAULT_NEXT_VALUE = 0;
 
     private final WildberriesClient client;
     private final WildberriesAdapterMapper mapper;
@@ -50,10 +61,21 @@ public class WildberriesAdapter extends MarketplaceAdapter {
             return Collections.emptyList();
         }
 
-        GetOrdersBySupplyIdResponse response = client.getOrdersBySupplyId(encryptService.decrypt(shop.getApiKey()), supplyId);
-        log.info("Успешно получены отправления для {} в количестве {}", shop.getName(), response.getOrders().size());
-        var orders = response.getOrders()
-                .stream()
+        SupplyInfoResponse supplyResponse = client.getSupplyById(encryptService.decrypt(shop.getApiKey()), supplyId);
+
+        Instant supplyCreatedDate = supplyResponse.getCreatedAt();
+        var searchOrdersRequest = buildSearchOrdersRequest(supplyCreatedDate);
+        var searchOrderResponse = client.getOrders(encryptService.decrypt(shop.getApiKey()),
+                searchOrdersRequest.getLimit(),
+                searchOrdersRequest.getNext(),
+                searchOrdersRequest.getDateFrom(),
+                searchOrdersRequest.getDateTo());
+        var filteredBySupplyIdOrders = searchOrderResponse.getOrders().stream()
+                .filter(it -> it.getSupplyId().equalsIgnoreCase(supplyId))
+                .toList();
+
+        log.info("Успешно получены отправления для {} в количестве {}", shop.getName(), filteredBySupplyIdOrders.size());
+        var orders = filteredBySupplyIdOrders.stream()
                 .map(order -> {
                     try {
                         return mapper.toPostingInfoModel(order, shop);
@@ -107,6 +129,35 @@ public class WildberriesAdapter extends MarketplaceAdapter {
         throw new UnsupportedOperationException();
     }
 
+    public Map<String, OrderStatus> getOrderStatuses(ShopEntity shop, List<OrderEntity> orders) {
+        log.info("Получаем статусы заказов из WB...");
+        var externalOrderNumberMap = orders.stream()
+                .collect(Collectors.toMap(order -> Long.parseLong(order.getExternalOrderNumber()), Function.identity()));
+
+        var request = new GetOrderStatusRequest().setOrders(externalOrderNumberMap.keySet().stream().toList());
+        var response = client.getOrdersStatus(encryptService.decrypt(shop.getApiKey()), request);
+        var responseOrdersInfo = response.getOrders();
+
+        if (CollectionUtils.isEmpty(responseOrdersInfo)) {
+            log.warn("При получении статусов WB заказов они не были найдены");
+            return orders.stream()
+                    .collect(Collectors.toMap(OrderEntity::getNumber, OrderEntity::getStatus));
+        }
+
+        var resultMap = new HashMap<String, OrderStatus>();
+        for (var wbOrderInfo : responseOrdersInfo) {
+            var actualWbStatus = wbOrderInfo.getWbStatus();
+            var orderEntity = externalOrderNumberMap.get(wbOrderInfo.getId());
+            var actualOrderStatus = WildberriesOrderHandleableStatuses.WB_STATUS_ORDER_STATUS_MAP.getOrDefault(actualWbStatus,
+                    orderEntity.getStatus());
+
+            resultMap.put(orderEntity.getNumber(), actualOrderStatus);
+        }
+
+        log.info("Получены следующие статусы WB заказов: {}", resultMap);
+        return resultMap;
+    }
+
     private void updateOrderIdByStickerId(List<PostingInfoModel> postings, ShopEntity shop) {
         Map<String, String> orderIdStickerIdMapping = new HashMap<>();
 
@@ -157,4 +208,18 @@ public class WildberriesAdapter extends MarketplaceAdapter {
                 .findFirst()
                 .orElse(null);
     }
+
+    private SearchOrdersRequest buildSearchOrdersRequest(Instant supplyCreatedDate) {
+        Instant minOrderCreatedDate = supplyCreatedDate.minus(3, ChronoUnit.DAYS);
+
+        Long dateTo = supplyCreatedDate.getEpochSecond();
+        Long dateFrom = minOrderCreatedDate.getEpochSecond();
+        return SearchOrdersRequest.builder()
+                .limit(MAX_ORDER_LIMIT_IN_RESPONSE)
+                .next(DEFAULT_NEXT_VALUE)
+                .dateFrom(dateFrom)
+                .dateTo(dateTo)
+                .build();
+    }
+
 }

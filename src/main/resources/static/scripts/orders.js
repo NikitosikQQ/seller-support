@@ -82,7 +82,7 @@ async function createFiltersSection(exportButton) {
 
     const materialSelect = createSingleSelect('Все материалы', materials.map(m => m.name));
     const excludeMaterialSelect = createMultiSelect('Исключить материалы', materials.map(m => m.name));
-    const statusSelect = createMultiSelect('Статусы', ['CREATED','PILA','CHPU','KROMKA','UPAKOVKA','BRAK']);
+    const statusSelect = createMultiSelect('Статусы', ['CANCELLED','CREATED','PILA','CHPU','KROMKA','UPAKOVKA','DONE','BRAK']);
     const marketplaceSelect = createMultiSelect('Маркетплейсы', marketplaces);
 
     // --- Ряды для CSS ---
@@ -511,12 +511,85 @@ async function openOrderModal(order) {
         grid.appendChild(item);
     });
 
+    // --- КНОПКА ИЗМЕНЕНИЯ СТАТУСА ---
+    const changeStatusWrapper = document.createElement('div');
+    changeStatusWrapper.classList.add('change-status-wrapper');
+
+    const changeStatusBtn = document.createElement('button');
+    changeStatusBtn.classList.add('change-status-btn');
+    changeStatusBtn.textContent = 'Изменить статус';
+
+    changeStatusWrapper.appendChild(changeStatusBtn);
+
+    const statusEditor = document.createElement('div');
+    statusEditor.classList.add('status-editor');
+
+    statusEditor.innerHTML = `
+    <label>Новый статус:</label>
+    <select id="statusSelect" class="status-select">
+        <option value="CANCELLED">CANCELLED</option>
+        <option value="CREATED">CREATED</option>
+        <option value="PILA">PILA</option>
+        <option value="CHPU">CHPU</option>
+        <option value="KROMKA">KROMKA</option>
+        <option value="UPAKOVKA">UPAKOVKA</option>
+        <option value="DONE">DONE</option>
+    </select>
+    <button class="save-status-btn">Сохранить</button>
+`;
+
+    changeStatusBtn.onclick = () => {
+        statusEditor.classList.toggle('open');
+    };
+
+    const saveBtn = statusEditor.querySelector('.save-status-btn');
+    saveBtn.onclick = async () => {
+        const newStatus = statusEditor.querySelector('.status-select').value;
+        const token = checkTokenExpirationAndGet();
+
+        try {
+            const response = await fetch(`/api/v1/orders/status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    number: order.number,
+                    newStatus: newStatus
+                })
+            });
+
+            if (!response.ok) {
+                let msg = "Неизвестная ошибка";
+
+                try {
+                    const errorJson = await response.json();
+                    msg = errorJson.message || JSON.stringify(errorJson);
+                } catch (_) {
+                    msg = await response.text(); // Если это не JSON
+                }
+
+                alert("Ошибка обновления статуса: " + msg);
+                return;
+            }
+
+            // Успех ↓
+            alert("Статус обновлён!");
+            statusEditor.classList.remove('open');
+
+        } catch (e) {
+            console.error(e);
+            alert("Ошибка сети: " + e.message);
+        }
+    };
+
     // Контейнер для истории
     const historySection = document.createElement('div');
     historySection.classList.add('order-history-section');
     historySection.innerHTML = `<h4>История изменений</h4><div class="order-history-loader">Загрузка...</div>`;
 
-    modalContent.append(closeBtn, title, grid, historySection);
+    modalContent.append(closeBtn, title, grid, changeStatusWrapper, statusEditor, historySection);
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
 

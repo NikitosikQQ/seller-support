@@ -27,7 +27,7 @@ public interface WildberriesAdapterMapper {
     @Mapping(target = "product", expression = "java(getProduct(order))")
     @Mapping(target = "inProcessAt", expression = "java(CommonUtils.toMoscowLocalDateTime(order.getCreatedAt()))")
     @Mapping(target = "postingNumber", source = "order.id")
-    @Mapping(target = "originalOrderNumber", ignore = true)
+    @Mapping(target = "originalOrderNumber", source = "order.id")
     PostingInfoModel toPostingInfoModel(Order order,
                                         ShopEntity shop);
 
@@ -38,7 +38,7 @@ public interface WildberriesAdapterMapper {
     @Mapping(target = "product", expression = "java(getWrongProduct(order))")
     @Mapping(target = "inProcessAt", expression = "java(CommonUtils.toMoscowLocalDateTime(order.getCreatedAt()))")
     @Mapping(target = "postingNumber", source = "order.id")
-    @Mapping(target = "originalOrderNumber", ignore = true)
+    @Mapping(target = "originalOrderNumber", source = "order.id")
     PostingInfoModel toWrongPostingInfoModel(Order order,
                                              ShopEntity shop);
 
@@ -70,7 +70,7 @@ public interface WildberriesAdapterMapper {
     @Named("colorNumber")
     default Integer getColorNumber(String article) {
         try {
-            return Integer.parseInt(article.split(ARTICLE_SEPARATOR)[2]);
+            return Integer.parseInt(article.split(ARTICLE_SEPARATOR)[2].trim());
         } catch (Exception e) {
             throw new ArticleMappingException(String.format("Не удалось сконвертировать артикул из WB %s: %s",
                     article, e.getMessage()));
@@ -80,7 +80,7 @@ public interface WildberriesAdapterMapper {
     @Named("length")
     default Integer getLength(String article) {
         try {
-            return Integer.parseInt(article.split(ARTICLE_SEPARATOR)[3]);
+            return Integer.parseInt(article.split(ARTICLE_SEPARATOR)[3].trim());
         } catch (Exception e) {
             throw new ArticleMappingException(String.format("Не удалось сконвертировать артикул из WB %s : %s",
                     article,
@@ -91,7 +91,7 @@ public interface WildberriesAdapterMapper {
     @Named("width")
     default Integer getWidth(String article) {
         try {
-            return Integer.parseInt(article.split(ARTICLE_SEPARATOR)[4]);
+            return Integer.parseInt(article.split(ARTICLE_SEPARATOR)[4].trim());
         } catch (Exception e) {
             throw new ArticleMappingException(String.format("Не удалось сконвертировать артикул из WB %s : %s",
                     article,
@@ -102,7 +102,7 @@ public interface WildberriesAdapterMapper {
     @Named("thickness")
     default Integer getThickness(String article) {
         try {
-            return Integer.parseInt(article.split(ARTICLE_SEPARATOR)[5]);
+            return Integer.parseInt(article.split(ARTICLE_SEPARATOR)[5].trim());
         } catch (Exception e) {
             throw new ArticleMappingException(String.format("Не удалось сконвертировать артикул из WB %s : %s",
                     article,
@@ -113,7 +113,7 @@ public interface WildberriesAdapterMapper {
     @Named("promoName")
     default String getPromoName(String article) {
         try {
-            String promoName = article.split(ARTICLE_SEPARATOR)[6];
+            String promoName = article.split(ARTICLE_SEPARATOR)[6].trim();
             int firstSpaceIndex = promoName.indexOf(CommonUtils.SPACE);
             if (firstSpaceIndex == -1) {
                 return promoName;
@@ -130,7 +130,7 @@ public interface WildberriesAdapterMapper {
     @Named("comment")
     default String getComment(String article) {
         try {
-            String promoName = article.split(ARTICLE_SEPARATOR)[6];
+            String promoName = article.split(ARTICLE_SEPARATOR)[6].trim();
             int firstSpaceIndex = promoName.indexOf(CommonUtils.SPACE);
             if (firstSpaceIndex == -1) {
                 return CommonUtils.EMPTY_STRING;

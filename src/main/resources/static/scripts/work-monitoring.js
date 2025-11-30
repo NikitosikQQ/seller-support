@@ -66,7 +66,7 @@ export async function openWorkMonitoringPanel() {
         allWorkplaces = await fetchJson('/api/v1/workplaces/names', token);
         renderWorkplaceSelect(workplaceSection, allWorkplaces, false);
         await loadActualCapacity(null);
-        startAutoRefresh(5 * 60 * 1000, null); // 🔥 every 5 min
+        startAutoRefresh(5 * 60 * 1000, null); // 🔥 every 5 min for admins
     } else {
         const userWorkplaces = await fetchJson(`/api/v1/admin/users/${username}/workplaces`, token);
         if (!userWorkplaces || userWorkplaces.length === 0) {
@@ -74,7 +74,7 @@ export async function openWorkMonitoringPanel() {
             return;
         }
         renderWorkplaceSelect(workplaceSection, userWorkplaces, true);
-        startAutoRefresh(60 * 60 * 1000, null); // 🔥 every 60 min
+        startAutoRefresh(5 * 60 * 1000, null); // 🔥 every 5 min for employees
     }
 }
 

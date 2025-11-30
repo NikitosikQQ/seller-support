@@ -16,6 +16,7 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static ru.seller_support.assignment.domain.enums.OrderStatus.FINAL_STATUSES;
 import static ru.seller_support.assignment.service.mapper.OrderMapper.DEFAULT_SYSTEM_AUTHOR;
 
 @Service
@@ -29,11 +30,37 @@ public class OrderStatusHandler {
     private final Clock clock;
 
     @Transactional
+    public void updateOrdersStatusAndSave(List<OrderEntity> orders,
+                                          OrderStatus newStatus,
+                                          String author) {
+        orders.forEach(order -> updateStatusAndSave(order, newStatus, author));
+    }
+
+    @Transactional
+    public OrderUpdateStatusResult updateStatusAndSave(OrderEntity order,
+                                                       OrderStatus newStatus,
+                                                       String author) {
+        if (FINAL_STATUSES.contains(order.getStatus())) {
+            return OrderUpdateStatusResult.failedUpdate(order);
+        }
+        if (order.getStatus().equals(newStatus)) {
+            return OrderUpdateStatusResult.successUpdate(order);
+        }
+        order.setStatus(newStatus);
+        order.setUpdatedAt(LocalDateTime.now(clock));
+
+        var saved = orderRepository.save(order);
+        saveOrderHistory(order, author, null);
+
+        return OrderUpdateStatusResult.successUpdate(saved);
+    }
+
+    @Transactional
     public OrderUpdateStatusResult updateStatusAndSave(OrderEntity order,
                                                        OrderStatus newStatus,
                                                        List<EmployeeDto> employees) {
         var firstEmployeeWorkplace = Workplace.fromValue(employees.getFirst().getWorkplace());
-        if (order.getStatus() == newStatus || !order.getStatus().canUpdateToNewStatus(newStatus, firstEmployeeWorkplace)) {
+        if (!order.getStatus().canUpdateToNewStatus(newStatus, firstEmployeeWorkplace)) {
             return OrderUpdateStatusResult.failedUpdate(order);
         }
 

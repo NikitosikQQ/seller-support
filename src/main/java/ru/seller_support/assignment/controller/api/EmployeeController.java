@@ -1,4 +1,4 @@
-package ru.seller_support.assignment.controller;
+package ru.seller_support.assignment.controller.api;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.seller_support.assignment.controller.dto.request.employee.ProcessEmployeeWorkRequest;
 import ru.seller_support.assignment.controller.dto.response.EmployeeCapacityDtoResponse;
+import ru.seller_support.assignment.controller.dto.response.order.ResultInformationResponse;
 import ru.seller_support.assignment.domain.enums.RoleNames;
 import ru.seller_support.assignment.service.employee.EmployeeCapacityService;
 import ru.seller_support.assignment.service.employee.EmployeeWorkProcessService;
@@ -29,15 +30,15 @@ public class EmployeeController {
     private final EmployeeProcessedCapacityMapper mapper;
 
     @PostMapping(path = "/work/process")
-    public ResponseEntity<String> processWork(@Valid @RequestBody ProcessEmployeeWorkRequest request) {
+    public ResponseEntity<ResultInformationResponse> processWork(@Valid @RequestBody ProcessEmployeeWorkRequest request) {
         log.info("Производится процесс обработки заказа: {} ", request);
         var result = employeeWorkProcessService.processWork(request);
-        if (result.updated()) {
-            log.info("Обработка заказа успешно завершена. Статус обновлен: {} ", request);
+        if (result.getOrderWasUpdated()) {
+            log.info("Обработка заказа успешно завершена. Статус обновлен: {}, ответ: {} ", request, result);
         } else {
-            log.info("Обработка заказа завершена без обновления статуса: {} ", request);
+            log.info("Обработка заказа завершена без обновления статуса: {}, ответ: {} ", request, result);
         }
-        return ResponseEntity.ok().body(result.alert());
+        return ResponseEntity.ok().body(result);
     }
 
     @GetMapping(path = "/capacity/actual")
