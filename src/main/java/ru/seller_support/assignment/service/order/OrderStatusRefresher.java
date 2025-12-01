@@ -29,7 +29,8 @@ public class OrderStatusRefresher {
 
     private static final List<OrderStatus> STATUSES_FOR_ACTUALIZE_WB = List.of(CREATED, PILA, CHPU, KROMKA, UPAKOVKA);
     private static final List<OrderStatus> STATUSES_FOR_REFRESH = List.of(PILA, CHPU, KROMKA, UPAKOVKA);
-    private static final int MAX_DAYS_WITHOUT_CHANGES = 4;
+    private static final int MAX_DAYS_WITHOUT_CHANGES = 5;
+    private static final int DAYS_FOR_ACTUALIZE_WB_STATUS = 2;
     private static final int DEFAULT_BATCH_SIZE = 100;
 
     private static final String WILDBERRIES_AUTHOR = "WILDBERRIES";
@@ -43,7 +44,7 @@ public class OrderStatusRefresher {
 
     //todo если появятся вебхуки у вб, переписать на них по аналогии с озон и яндекс
     public void actualizeWildberriesOrderStatus() {
-        LocalDateTime threshold = LocalDateTime.now(clock).minusDays(MAX_DAYS_WITHOUT_CHANGES);
+        LocalDateTime threshold = LocalDateTime.now(clock).minusDays(DAYS_FOR_ACTUALIZE_WB_STATUS);
 
         log.info("Старт актуализации статусов заказов ВБ");
         try {
