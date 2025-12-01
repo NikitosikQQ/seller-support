@@ -42,8 +42,7 @@ public class ProcessorScheduler {
         log.info("Очиста старых выполненных работ произошла успешно");
     }
 
-   // @Scheduled(cron = "0 0 20 * * *", zone = "Europe/Moscow")
-    @Scheduled(cron = "0 10 * * * *", zone = "Europe/Moscow")
+    @Scheduled(cron = "0 0 20 * * *", zone = "Europe/Moscow")
     public void processRefreshOrderStatuses() {
         orderStatusRefresher.actualizeWildberriesOrderStatus();
         orderStatusRefresher.refreshOrdersStatus();

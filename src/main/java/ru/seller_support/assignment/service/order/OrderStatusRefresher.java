@@ -43,7 +43,7 @@ public class OrderStatusRefresher {
 
     //todo если появятся вебхуки у вб, переписать на них по аналогии с озон и яндекс
     public void actualizeWildberriesOrderStatus() {
-        LocalDateTime threshold = LocalDateTime.now(clock).minusNanos(MAX_DAYS_WITHOUT_CHANGES);
+        LocalDateTime threshold = LocalDateTime.now(clock).minusDays(MAX_DAYS_WITHOUT_CHANGES);
 
         log.info("Старт актуализации статусов заказов ВБ");
         try {
@@ -95,8 +95,7 @@ public class OrderStatusRefresher {
             }
 
             log.info("Актуализация статусов WB заказов завершено успешно.");
-        } catch (
-                Exception ex) {
+        } catch (Exception ex) {
             log.error("Во время обновления статусов WB заказов произошла ошибка {}", ex.getMessage(), ex);
         }
     }
@@ -104,12 +103,12 @@ public class OrderStatusRefresher {
     public void refreshOrdersStatus() {
         log.info("Перезапуск статусной модели по зависшим заказам");
 
-        LocalDateTime threshold = LocalDateTime.now(clock).minusNanos(MAX_DAYS_WITHOUT_CHANGES);
+        LocalDateTime threshold = LocalDateTime.now(clock).minusDays(MAX_DAYS_WITHOUT_CHANGES);
         try {
             List<String> numbers = orderRepository.findOrderNumbersForRefresh(
                     STATUSES_FOR_REFRESH,
                     threshold,
-                    List.of(Marketplace.WILDBERRIES, Marketplace.OZON, Marketplace.WILDBERRIES)
+                    List.of(Marketplace.YANDEX_MARKET, Marketplace.OZON, Marketplace.WILDBERRIES)
             );
 
             if (CollectionUtils.isEmpty(numbers)) {
