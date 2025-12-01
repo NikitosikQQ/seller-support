@@ -17,7 +17,7 @@ public class YandexMarketCallbackController {
 
     private final YandexMarketCallbackFacade facade;
 
-    @PostMapping(path = "/callback")
+    @PostMapping(path = "/notification")
     public ResponseEntity<YandexMarketCallbackResponse> processCallback(@RequestBody YandexMarketCallbackRequest request) {
         var result = facade.process(request);
         return ResponseEntity.ok(result);
