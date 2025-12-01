@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import ru.seller_support.assignment.controller.dto.request.callback.ozon.OzonCallbackResponse;
@@ -29,5 +30,11 @@ public class OzonControllerAdvice {
         log.error("Ошибка при обработке колбэка от ozon: {}", ex.getMessage(), ex);
         OzonCallbackResponse body = errorResolver.resolveOzonError(ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<OzonCallbackResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        OzonCallbackResponse body = errorResolver.resolveOzonError(ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 }
