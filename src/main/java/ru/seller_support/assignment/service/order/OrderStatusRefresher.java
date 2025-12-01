@@ -35,6 +35,7 @@ public class OrderStatusRefresher {
 
     private static final String WILDBERRIES_AUTHOR = "WILDBERRIES";
     private static final String SYSTEM_AUTHOR = "SYSTEM_AUTO_REFRESH";
+    private static final LocalDateTime MIN_CREATED_DATE = LocalDateTime.of(2025, 12, 1, 0, 0, 0);
 
     private final OrderRepository orderRepository;
     private final OrderStatusHandler statusHandler;
@@ -51,7 +52,8 @@ public class OrderStatusRefresher {
             List<String> numbers = orderRepository.findOrderNumbersForRefresh(
                     STATUSES_FOR_ACTUALIZE_WB,
                     threshold,
-                    List.of(Marketplace.WILDBERRIES)
+                    List.of(Marketplace.WILDBERRIES),
+                    MIN_CREATED_DATE
             );
 
             if (CollectionUtils.isEmpty(numbers)) {
@@ -109,7 +111,8 @@ public class OrderStatusRefresher {
             List<String> numbers = orderRepository.findOrderNumbersForRefresh(
                     STATUSES_FOR_REFRESH,
                     threshold,
-                    List.of(Marketplace.YANDEX_MARKET, Marketplace.OZON, Marketplace.WILDBERRIES)
+                    List.of(Marketplace.YANDEX_MARKET, Marketplace.OZON, Marketplace.WILDBERRIES),
+                    MIN_CREATED_DATE
             );
 
             if (CollectionUtils.isEmpty(numbers)) {

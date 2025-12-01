@@ -30,11 +30,13 @@ public interface OrderRepository extends JpaRepository<OrderEntity, UUID>, JpaSp
                         WHERE h.orderId = o.id
                           AND h.createdAt >= :threshold
                   )
-                  ORDER BY o.inProcessAt
+                AND o.createdAt >= :minCreatedAt
+                ORDER BY o.inProcessAt
             """)
     List<String> findOrderNumbersForRefresh(@Param("statuses") Collection<OrderStatus> statuses,
                                             @Param("threshold") LocalDateTime threshold,
-                                            @Param("marketplaces") Collection<Marketplace> marketplaces);
+                                            @Param("marketplaces") Collection<Marketplace> marketplaces,
+                                            @Param("minCreatedAt") LocalDateTime minCreatedAt);
 
     OrderEntity findByNumber(String number);
 
