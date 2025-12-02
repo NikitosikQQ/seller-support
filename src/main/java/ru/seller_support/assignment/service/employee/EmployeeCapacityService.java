@@ -63,12 +63,16 @@ public class EmployeeCapacityService {
 
     @Transactional(readOnly = true)
     public List<EmployeeCapacityDto> getActualCapacity(boolean isAdmin, String workplace) {
-        var today = LocalDate.now(clock);
+        //мониторинг работ за день учитывается с 21 до 21
+        var now = LocalDateTime.now(clock);
+        var date = now.toLocalDate();
+        var cutoff = LocalTime.of(21, 0);
+        LocalDate processedAt = now.toLocalTime().isBefore(cutoff) ? date : date.plusDays(1);
         if (isAdmin) {
             Set<Workplace> workplaces = Workplace.getWorkplacesGroupByWorkplace(Workplace.fromValue(workplace));
             var capacities = workplaces.isEmpty()
-                    ? employeeCapacityRepository.getAllCapacitiesByProcessedAt(today)
-                    : employeeCapacityRepository.getActualCapacitiesByWorkplace(today, workplaces);
+                    ? employeeCapacityRepository.getAllCapacitiesByProcessedAt(processedAt)
+                    : employeeCapacityRepository.getActualCapacitiesByWorkplace(processedAt, workplaces);
             return capacities.stream()
                     .map(mapper::toDto)
                     .toList();
@@ -83,7 +87,7 @@ public class EmployeeCapacityService {
             //если попросят вернуть задержку отображения для работников
 //            var timeLimit = LocalDateTime.now(clock).minus(CAPACITY_UPDATE_DELAY);
 //            return employeeActivityHistoryRepository.getCapacitiesByWorkplacesWithDelay(today, workplaces, timeLimit);
-            var capacities = employeeCapacityRepository.getActualCapacitiesByWorkplace(today, workplaces);
+            var capacities = employeeCapacityRepository.getActualCapacitiesByWorkplace(processedAt, workplaces);
             return capacities.stream()
                     .map(mapper::toDto)
                     .toList();
