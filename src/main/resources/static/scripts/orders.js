@@ -735,7 +735,6 @@ async function openImportOrdersModal() {
     dateInput.type = 'text';
     dateInput.placeholder = 'Выберите дату начала периода';
     dateInput.classList.add('input-not-role');
-    dateInput.style.display = 'none';
 
     // Flatpickr для выбора даты
     flatpickr(dateInput, {
@@ -744,11 +743,14 @@ async function openImportOrdersModal() {
         dateFormat: "Y-m-d H:i",
         locale: "ru",
         allowInput: true,
-        minuteIncrement: 1
+        minuteIncrement: 1,
+        disableMobile: true
     });
 
+    dateInput.classList.add('hidden-input');
+
     addDateButton.addEventListener('click', () => {
-        dateInput.style.display = dateInput.style.display === 'none' ? 'block' : 'none';
+        dateInput.classList.toggle('hidden-input');
     });
 
     function addSupplyRow() {
