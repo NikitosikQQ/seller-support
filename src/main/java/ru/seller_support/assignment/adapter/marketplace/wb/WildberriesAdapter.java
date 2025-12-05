@@ -211,9 +211,10 @@ public class WildberriesAdapter extends MarketplaceAdapter {
 
     private SearchOrdersRequest buildSearchOrdersRequest(Instant supplyCreatedDate) {
         Instant minOrderCreatedDate = supplyCreatedDate.minus(3, ChronoUnit.DAYS);
+        Instant maxOrderCreatedDate = supplyCreatedDate.plus(4, ChronoUnit.HOURS);
 
-        Long dateTo = supplyCreatedDate.getEpochSecond();
         Long dateFrom = minOrderCreatedDate.getEpochSecond();
+        Long dateTo = maxOrderCreatedDate.getEpochSecond();
         return SearchOrdersRequest.builder()
                 .limit(MAX_ORDER_LIMIT_IN_RESPONSE)
                 .next(DEFAULT_NEXT_VALUE)
