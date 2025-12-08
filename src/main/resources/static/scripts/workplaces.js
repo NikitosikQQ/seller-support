@@ -110,6 +110,82 @@ export function renderWorkplaceTable(workplaces) {
     container.appendChild(table);
 }
 
+
+// === Модальное окно изменения ставки ===
+export function openEditWorkplaceModal(workplace) {
+    const modal = document.createElement('div');
+    modal.classList.add('modal');
+
+    const modalContent = document.createElement('div');
+    modalContent.classList.add('modal-content');
+
+    const closeButton = document.createElement('span');
+    closeButton.textContent = '×';
+    closeButton.classList.add('close-button');
+    closeButton.addEventListener('click', () => modal.remove());
+
+    const form = document.createElement('form');
+
+    const headerForm = document.createElement('h3');
+    headerForm.textContent = `Изменение ставки — ${workplace.workplace}`;
+
+    const nameLabel = document.createElement('label');
+    nameLabel.textContent = 'Название рабочего места';
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.value = workplace.workplace;
+    nameInput.disabled = true;
+    nameInput.classList.add('input-not-role');
+
+    const rateLabel = document.createElement('label');
+    rateLabel.textContent = 'Ставка';
+    const rateInput = document.createElement('input');
+    rateInput.type = 'number';
+    rateInput.min = '0';
+    rateInput.step = '0.01';
+    rateInput.value = workplace.rate;
+    rateInput.required = true;
+    rateInput.classList.add('input-not-role');
+
+    const cancelButton = document.createElement('button');
+    cancelButton.textContent = 'Отменить';
+    cancelButton.classList.add('delete-button');
+    cancelButton.type = 'button';
+    cancelButton.addEventListener('click', () => modal.remove());
+
+    const saveButton = document.createElement('button');
+    saveButton.textContent = 'Сохранить';
+    saveButton.classList.add('edit-button');
+    saveButton.type = 'submit';
+
+    const buttonGroup = document.createElement('div');
+    buttonGroup.classList.add('button-group');
+    buttonGroup.appendChild(saveButton);
+    buttonGroup.appendChild(cancelButton);
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const updatedWorkplace = {
+            id: workplace.id,
+            rate: parseFloat(rateInput.value)
+        };
+        await fetchUpdateWorkplaceRate(updatedWorkplace);
+        modal.remove();
+    });
+
+    form.appendChild(headerForm);
+    form.appendChild(nameLabel);
+    form.appendChild(nameInput);
+    form.appendChild(rateLabel);
+    form.appendChild(rateInput);
+    form.appendChild(buttonGroup);
+
+    modalContent.appendChild(closeButton);
+    modalContent.appendChild(form);
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+}
+
 let deletedMaterials = [];
 let currentWorkplace = '';
 
