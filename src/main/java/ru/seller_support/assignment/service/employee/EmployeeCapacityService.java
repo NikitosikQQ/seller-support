@@ -176,9 +176,9 @@ public class EmployeeCapacityService {
 
     private BigDecimal calculateCurrentAmount(OrderEntity orderEntity, Workplace workplace) {
         var currentCapacity = orderEntity.getAreaInMeters();
-        var materialRateCoef = workplaceService.findCoefficientPerMaterialsByWorkplace(workplace);
+        var materialWithAreaPerMeterRateCoef = workplaceService.findActualCoefficient(workplace, orderEntity.getMaterialName(), currentCapacity);
         var rate = workplaceService.findRateByWorkplace(workplace);
-        var resultRate = rate.multiply(materialRateCoef.getOrDefault(orderEntity.getMaterialName(), BigDecimal.ONE));
+        var resultRate = rate.multiply(materialWithAreaPerMeterRateCoef);
         return currentCapacity.multiply(resultRate);
     }
 

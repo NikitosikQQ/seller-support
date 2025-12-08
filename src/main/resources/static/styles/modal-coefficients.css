@@ -1,0 +1,187 @@
+/* === Фон для модального окна коэффициентов === */
+.modal-coefficients {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* === Контент модального окна коэффициентов === */
+.modal-content-coefficients {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    max-width: 1000px; /* увеличенная ширина */
+    width: 90%;
+    position: relative;
+    animation: fadeIn 0.3s ease-out;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Анимация появления модалки */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Кнопка закрытия */
+.modal-content-coefficients .close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    border: none;
+    background: none;
+    transition: color 0.3s ease;
+}
+
+.modal-content-coefficients .close-button:hover {
+    color: #000;
+}
+
+/* Заголовок модалки */
+.modal-content-coefficients h3 {
+    font-size: 1.5rem;
+    color: #333;
+    text-align: center;
+    margin: 0 0 1rem 0;
+    font-weight: 600;
+}
+
+/* Поля ввода */
+.modal-content-coefficients .input-not-role {
+    padding: 0.85rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #fafafa;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.modal-content-coefficients .input-not-role:focus {
+    border-color: #2f2f2f;
+    background-color: #ffffff;
+    outline: none;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Кнопки */
+.modal-content-coefficients .button-group {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.modal-content-coefficients .add-supply-button,
+.modal-content-coefficients .edit-button {
+    background: #3b3b3b;
+    color: #fff;
+    padding: 0.85rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 1rem;
+    transition: background 0.3s ease, box-shadow 0.2s ease;
+}
+
+.modal-content-coefficients .add-supply-button:hover,
+.modal-content-coefficients .edit-button:hover {
+    background: #565656;
+    box-shadow: 0 4px 10px rgba(33, 33, 33, 0.6);
+}
+
+.modal-content-coefficients .add-supply-button:active,
+.modal-content-coefficients .edit-button:active {
+    background: #181818;
+}
+
+/* Стиль для строки коэффициента */
+.material-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+/* Удаление строки */
+.remove-supply-button {
+    background: none;
+    border: none;
+    color: #d9534f;
+    font-size: 1.5rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.remove-supply-button:hover {
+    color: #b71c1c;
+}
+
+/* Адаптивность */
+@media (max-width: 600px) {
+    .modal-content-coefficients {
+        width: 95%;
+        padding: 1.5rem;
+    }
+
+    .modal-content-coefficients h3 {
+        font-size: 1.3rem;
+    }
+
+    .modal-content-coefficients .add-supply-button,
+    .modal-content-coefficients .edit-button {
+        font-size: 0.9rem;
+        padding: 0.7rem;
+    }
+}
+
+.area-display {
+    padding: 0.85rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fafafa;
+    gap: 5px;
+    margin-bottom: 17px;
+    font-size: 1rem;
+    display: inline-block;
+    min-width: 120px;
+    text-align: center;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.area-display:hover {
+    border-color: #2f2f2f;
+    background-color: #ffffff;
+}
+
+/* Состояние заблокированной кнопки */
+.add-supply-button:disabled {
+    background-color: #ccc; /* серый */
+    color: #666;            /* темно-серый текст */
+    cursor: not-allowed;    /* курсор запрещено */
+    opacity: 0.7;           /* слегка прозрачная */
+}

@@ -8,15 +8,11 @@ import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 @Value
 @Builder
 @Jacksonized
-public class WorkplaceMaterialRatesChangeBody {
-
-    @NotNull
-    UUID id;
+public class WorkplaceMaterialRatesSaveBody {
 
     @NotBlank
     String workplace;
@@ -28,9 +24,9 @@ public class WorkplaceMaterialRatesChangeBody {
     @DecimalMin(value = "0.0", message = "Ставка не может быть отрицательной")
     BigDecimal coefficient;
 
-    @DecimalMin(value = "0.0", message = "Минимальный размер не может быть отрицательным")
+    @DecimalMin(value = "0.0", message = "Ставка не может быть отрицательной")
     BigDecimal minAreaInMeters;
 
-    @DecimalMin(value = "0.0", message = "Максимальный размер не может быть отрицательным")
+    @DecimalMin(value = "0.0", message = "Ставка не может быть отрицательной")
     BigDecimal maxAreaInMeters;
 }
