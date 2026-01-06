@@ -29,7 +29,7 @@ public class OrderStatusRefresher {
 
     private static final List<OrderStatus> STATUSES_FOR_ACTUALIZE_WB = List.of(CREATED, PILA, CHPU, KROMKA, UPAKOVKA);
     private static final List<OrderStatus> STATUSES_FOR_REFRESH = List.of(PILA, CHPU, KROMKA, UPAKOVKA);
-    private static final int MAX_DAYS_WITHOUT_CHANGES = 7;
+    private static final int MAX_DAYS_WITHOUT_CHANGES = 4;
     private static final int DAYS_FOR_ACTUALIZE_WB_STATUS = 2;
     private static final int DEFAULT_BATCH_SIZE = 100;
 
